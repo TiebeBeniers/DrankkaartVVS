@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>VVS Rotselaar Drankkaart</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 15px 10px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      max-width: 100%;
+      overflow-x: hidden;
+      box-sizing: border-box;
+      background: #fff;
+    }
+
+    #drank-container {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px 10px;
+      margin-top: 10px;
+      justify-items: center;
+      width: 100%;
+      max-width: 600px;
+    }
+
+    #reset-knop {
+      padding: 6px 12px;
+      background-color: #f44336;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-size: 1em;
+      cursor: pointer;
+      margin-left: auto;
+      margin-right: 0;
+    }
+
+    #reset-knop:hover {
+      background-color: #d32f2f;
+    }
+
+    .drank {
+      cursor: pointer;
+      padding: 5px 4px;
+      text-align: center;
+    }
+
+    .drank img {
+      width: 70px;
+      height: 70px;
+      border-radius: 10px;
+      transition: transform 0.2s;
+      display: block;
+      margin: 0 auto 4px;
+    }
+
+    .drank img:hover {
+      transform: scale(1.1);
+    }
+
+    .drank p {
+      margin: 0;
+      font-size: 0.9em;
+      line-height: 1.1em;
+    }
+
+    .prijs {
+      font-size: 1.3em;
+      margin-top: 8px;
+    }
+
+    .overzicht {
+      margin-top: 8px;
+      font-size: 1em;
+      max-width: 600px;
+      width: 100%;
+      text-align: left;
+      padding-left: 10px;
+    }
+
+    .overzicht-item {
+      margin-bottom: 8px;
+    }
+
+    .min-knop {
+      margin-left: 10px;
+      padding: 2px 8px;
+      font-size: 0.9em;
+      cursor: pointer;
+    }
+
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      width: 100%;
+      max-width: 600px;
+      padding: 0 10px;
+      box-sizing: border-box;
+      margin-bottom: 6px;
+    }
+
+    .header h1 {
+      text-align: center;
+      flex: 1;
+      margin: 0;
+      font-size: 1.6em;
+    }
+    #overzicht {
+      text-align: center;
+    }
+
+    #overzicht {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+    }
+
+    .overzicht-item {
+      margin-bottom: 8px;
+      width: 80%;
+      max-width: 300px;
+      background: #f0f0f0;
+      padding: 6px 10px;
+      border-radius: 6px;
+
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .min-knop {
+      margin-left: 10px;
+      padding: 2px 8px;
+      font-size: 1.1em;
+      cursor: pointer;
+      background: #d9534f;
+      border: none;
+      color: white;
+      border-radius: 4px;
+      user-select: none;
+      width: 26px;
+      height: 26px;
+      line-height: 22px;
+      text-align: center;
+    }
+    .min-knop:hover {
+      background: #c9302c;
+    }
+
+    @media (max-width: 400px) {
+      #drank-container {
+        grid-template-columns: repeat(3, 1fr);
+      }
+
+      .drank img {
+        width: 50px;
+        height: 50px;
+      }
+
+      .header h1 {
+        font-size: 1.3em;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>Bestelling</h1>
+    <button id="reset-knop" onclick="resetAlles()">🔄 Reset</button>
+  </div>
+
+  <div id="drank-container"></div>
+
+  <div class="prijs" id="totaal">Totaal: €0,00</div>
+
+  <div class="overzicht" id="overzicht"></div>
+
+  <script>
+    const drankjes = {
+      "Primus": { prijs: 4.00, count: 0, img: "https://images.ctfassets.net/vlb1ben6vtp9/5AoH7vuMfekY2Mmqs2qQKS/33964e553c07c9c991013f553148c280/Primus_Woordmerk_rood.JPG" },
+      "Mystic": { prijs: 3.30, count: 0, img: "https://assets.untappd.com/site/beer_logos_hd/beer-89870_86e4d_hd.jpeg" },
+      "Cup Refund": { prijs: -0.70, count: 0, img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSHioty0iBxu1yOhmz3s8_wy_u6ChVr60-1LQ&s" },
+      "Cava of Wijn": { prijs: 4.00, count: 0, img: "https://www.wijnenjacobs.be/wp-content/uploads/2023/07/Cava-Pupitre.png" },
+      "Plat water": { prijs: 3.30, count: 0, img: "https://diest-pack.be/wp-content/uploads/2024/05/000675.jpg" },
+      "Bruisend water": { prijs: 3.30, count: 0, img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQqRh8DodqftblxijHwvh6-wRWEPcWiQvaQlw&s" },
+      "Cola": { prijs: 3.30, count: 0, img: "https://www.picknsave.com/content/v2/binary/image/brand/coca-cola/imageset/65265_bp_icon_cocacola_m--65265_bp_icon_coca-cola_m.png" },
+      "Cola Zero": { prijs: 3.30, count: 0, img: "https://www.picknsave.com/content/v2/binary/image/brand/coca-cola/imageset_coke-zero-logo--brandicon_cokezero.png" },
+      "Fanta": { prijs: 3.30, count: 0, img: "https://www.picknsave.com/content/v2/binary/image/brand/coca-cola/imageset/65265_bp_icon_fanta_m--65265_bp_icon_fanta_m.png" },
+      "Fuzetea": { prijs: 3.30, count: 0, img: "https://www.franceconfiserie.com/wp-content/uploads/2022/04/logo-fuzetea-france-confiserie.jpg" }
+    };
+    
+    let totaal = 0;
+
+    function updateTotaal() {
+      totaal = 0;
+      for (let naam in drankjes) {
+        totaal += drankjes[naam].prijs * drankjes[naam].count;
+      }
+      document.getElementById("totaal").innerText = "Totaal: €" + totaal.toFixed(2).replace('.', ',');
+    }
+
+    function updateOverzicht() {
+      const overzicht = document.getElementById("overzicht");
+      overzicht.innerHTML = "";
+
+      let ietsGekozen = false;
+
+      for (let naam in drankjes) {
+        const drankje = drankjes[naam];
+        if (drankje.count > 0) {
+          ietsGekozen = true;
+          const item = document.createElement("div");
+          item.className = "overzicht-item";
+          item.innerHTML = `${drankje.count}x ${naam} <button class="min-knop" onclick="verwijder('${naam}')">-1</button>`;
+          overzicht.appendChild(item);
+        }
+      }
+      if (!ietsGekozen) {
+        overzicht.innerText = "Nog niets geselecteerd.";
+      }
+    }
+
+    function voegToe(naam) {
+      drankjes[naam].count++;
+      updateTotaal();
+      updateOverzicht();
+    }
+
+    function verwijder(naam) {
+      if (drankjes[naam].count > 0) {
+        drankjes[naam].count--;
+        updateTotaal();
+        updateOverzicht();
+      }
+    }
+
+    // Drankjes tonen
+    const container = document.getElementById("drank-container");
+    for (let naam in drankjes) {
+      const drankje = drankjes[naam];
+      const div = document.createElement("div");
+      div.className = "drank";
+      div.innerHTML = `
+        <img src="${drankje.img}" alt="${naam}" onclick="voegToe('${naam}')"><br>
+        <p>${naam} (€${drankje.prijs.toFixed(2).replace('.', ',')})</p>
+      `;
+      container.appendChild(div);
+    }
+
+    updateOverzicht();
+  
+    function resetAlles() {
+      for (let naam in drankjes) {
+        drankjes[naam].count = 0;
+      }
+      updateTotaal();
+      updateOverzicht();
+    }
+
+    function updateOverzicht() {
+      const overzicht = document.getElementById("overzicht");
+      overzicht.innerHTML = "";
+
+      let ietsGekozen = false;
+
+      for (let naam in drankjes) {
+        const drankje = drankjes[naam];
+        if (drankje.count > 0) {
+          ietsGekozen = true;
+          const item = document.createElement("div");
+          item.className = "overzicht-item";
+          item.innerHTML = `${drankje.count}x ${naam} <button class="min-knop" onclick="verwijder('${naam}')">-1</button>`;
+          overzicht.appendChild(item);
+        }
+      }
+
+      if (!ietsGekozen) {
+        overzicht.innerText = "Nog niets geselecteerd.";
+        overzicht.style.textAlign = "center";   // <-- hier tekst centreren als leeg
+      } else {
+        overzicht.style.textAlign = "left";     // <-- anders tekst links
+      }
+    }
+
+  </script>
+</body>
+</html>
