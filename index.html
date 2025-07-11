@@ -225,6 +225,14 @@
     }
 
     function voegToe(naam, aantal = 1) {
+      if (naam === "Cup Refund") {
+        const maxBekers = drankjes["Primus"].count + drankjes["Mystic"].count + drankjes["Cava of Wijn"].count;
+        if (drankjes["Cup Refund"].count + aantal > maxBekers) {
+          alert("Extra bekers via refund-ticket.");
+          return;
+        }
+      }
+
       drankjes[naam].count += aantal;
       updateTotaal();
       updateOverzicht();
