@@ -271,6 +271,7 @@
         <img src="${drankje.img}" alt="${naam}" onclick="voegToe('${naam}')"><br>
         <p>${naam} (€${drankje.prijs.toFixed(2).replace('.', ',')})</p>
       `;
+      div.addEventListener('click', () => voegToe(naam));
       container.appendChild(div);
     }
 
