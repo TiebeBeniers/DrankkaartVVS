@@ -37,7 +37,6 @@
       font-size: 1em;
       cursor: pointer;
       margin-left: auto;
-      margin-right: 0;
     }
 
     #reset-knop:hover {
@@ -79,47 +78,10 @@
       font-size: 1em;
       max-width: 600px;
       width: 100%;
-      text-align: left;
-      padding-left: 10px;
-    }
-
-    .overzicht-item {
-      margin-bottom: 8px;
-    }
-
-    .min-knop {
-      margin-left: 10px;
-      padding: 2px 8px;
-      font-size: 0.9em;
-      cursor: pointer;
-    }
-
-    .header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      width: 100%;
-      max-width: 600px;
-      padding: 0 10px;
-      box-sizing: border-box;
-      margin-bottom: 6px;
-    }
-
-    .header h1 {
       text-align: center;
-      flex: 1;
-      margin: 0;
-      font-size: 1.6em;
-    }
-    #overzicht {
-      text-align: center;
-    }
-
-    #overzicht {
       display: flex;
       flex-direction: column;
       align-items: center;
-      text-align: center;
     }
 
     .overzicht-item {
@@ -129,29 +91,54 @@
       background: #f0f0f0;
       padding: 6px 10px;
       border-radius: 6px;
-
       display: flex;
       justify-content: space-between;
       align-items: center;
     }
 
-    .min-knop {
-      margin-left: 10px;
-      padding: 2px 8px;
-      font-size: 1.1em;
-      cursor: pointer;
-      background: #d9534f;
-      border: none;
-      color: white;
-      border-radius: 4px;
-      user-select: none;
+    .knoppen {
+      display: flex;
+      gap: 6px;
+    }
+
+    .knop {
       width: 26px;
       height: 26px;
+      font-size: 1em;
       line-height: 22px;
       text-align: center;
+      border: none;
+      border-radius: 4px;
+      color: white;
+      cursor: pointer;
+      user-select: none;
     }
-    .min-knop:hover {
-      background: #c9302c;
+
+    .plus { background: #5cb85c; }       /* Groen */
+    .plus:hover { background: #4cae4c; }
+
+    .min { background: #f0ad4e; }        /* Oranje */
+    .min:hover { background: #ec971f; }
+
+    .delete { background: #d9534f; }     /* Rood */
+    .delete:hover { background: #c9302c; }
+
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      width: 100%;
+      max-width: 600px;
+      padding: 0 10px;
+      margin-bottom: 6px;
+      box-sizing: border-box;
+    }
+
+    .header h1 {
+      text-align: center;
+      flex: 1;
+      margin: 0;
+      font-size: 1.6em;
     }
 
     @media (max-width: 400px) {
@@ -196,11 +183,9 @@
       "Fuzetea": { prijs: 3.30, count: 0, img: "https://www.franceconfiserie.com/wp-content/uploads/2022/04/logo-fuzetea-france-confiserie.jpg" },
       "Chips": { prijs: 3.30, count: 0, img: "https://raja.scene7.com/is/image/Raja/products/lay-paquet-chips-nature-lot-20-sachets-45-g_86365-00J.jpg?template=withpicto600&$image=ofr7719972BA&$picto=NoPicto&hei=600&wid=600&fmt=jpg&qlt=85,0&resMode=sharp2&op_usm=1.75,0.3,2,0" }
     };
-    
-    let totaal = 0;
 
     function updateTotaal() {
-      totaal = 0;
+      let totaal = 0;
       for (let naam in drankjes) {
         totaal += drankjes[naam].prijs * drankjes[naam].count;
       }
@@ -217,19 +202,30 @@
         const drankje = drankjes[naam];
         if (drankje.count > 0) {
           ietsGekozen = true;
+
           const item = document.createElement("div");
           item.className = "overzicht-item";
-          item.innerHTML = `${drankje.count}x ${naam} <button class="min-knop" onclick="verwijder('${naam}')">-1</button>`;
+
+          item.innerHTML = `
+            <span>${drankje.count}x ${naam}</span>
+            <div class="knoppen">
+              <button class="knop plus" onclick="voegToe('${naam}', 3)">+3</button>
+              <button class="knop min" onclick="verwijder('${naam}')">-1</button>
+              <button class="knop delete" onclick="verwijderAlles('${naam}')">x</button>
+            </div>
+          `;
+
           overzicht.appendChild(item);
         }
       }
+
       if (!ietsGekozen) {
         overzicht.innerText = "Nog niets geselecteerd.";
       }
     }
 
-    function voegToe(naam) {
-      drankjes[naam].count++;
+    function voegToe(naam, aantal = 1) {
+      drankjes[naam].count += aantal;
       updateTotaal();
       updateOverzicht();
     }
@@ -242,7 +238,21 @@
       }
     }
 
-    // Drankjes tonen
+    function verwijderAlles(naam) {
+      drankjes[naam].count = 0;
+      updateTotaal();
+      updateOverzicht();
+    }
+
+    function resetAlles() {
+      for (let naam in drankjes) {
+        drankjes[naam].count = 0;
+      }
+      updateTotaal();
+      updateOverzicht();
+    }
+
+  // Drankknoppen toevoegen
     const container = document.getElementById("drank-container");
     for (let naam in drankjes) {
       const drankje = drankjes[naam];
@@ -256,40 +266,6 @@
     }
 
     updateOverzicht();
-  
-    function resetAlles() {
-      for (let naam in drankjes) {
-        drankjes[naam].count = 0;
-      }
-      updateTotaal();
-      updateOverzicht();
-    }
-
-    function updateOverzicht() {
-      const overzicht = document.getElementById("overzicht");
-      overzicht.innerHTML = "";
-
-      let ietsGekozen = false;
-
-      for (let naam in drankjes) {
-        const drankje = drankjes[naam];
-        if (drankje.count > 0) {
-          ietsGekozen = true;
-          const item = document.createElement("div");
-          item.className = "overzicht-item";
-          item.innerHTML = `${drankje.count}x ${naam} <button class="min-knop" onclick="verwijder('${naam}')">-1</button>`;
-          overzicht.appendChild(item);
-        }
-      }
-
-      if (!ietsGekozen) {
-        overzicht.innerText = "Nog niets geselecteerd.";
-        overzicht.style.textAlign = "center";   // <-- hier tekst centreren als leeg
-      } else {
-        overzicht.style.textAlign = "left";     // <-- anders tekst links
-      }
-    }
-
   </script>
 </body>
 </html>
