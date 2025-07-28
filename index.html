@@ -268,7 +268,7 @@
       const div = document.createElement("div");
       div.className = "drank";
       div.innerHTML = `
-        <img src="${drankje.img}" alt="${naam}" onclick="voegToe('${naam}')"><br>
+        <img src="${drankje.img}" alt="${naam}">
         <p>${naam} (€${drankje.prijs.toFixed(2).replace('.', ',')})</p>
       `;
       div.addEventListener('click', () => voegToe(naam));
