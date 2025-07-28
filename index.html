@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="nl">
+<html class="dark" lang="nl-NL">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -44,14 +44,24 @@
     }
 
     .drank {
+      width: 100%; /* Laat grid de breedte bepalen */
+      min-width: 110px; /* Verplicht minimumformaat */
+      max-width: 150px; /* Houd alles ongeveer even breed */
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 10px;
+      box-sizing: border-box;
+      border-radius: 12px;
       cursor: pointer;
-      padding: 5px 4px;
+      transition: background-color 0.2s;
       text-align: center;
     }
 
     .drank img {
-      width: 70px;
-      height: 70px;
+      width: 80px;
+      height: 80px;
       border-radius: 10px;
       transition: transform 0.2s;
       display: block;
@@ -60,6 +70,11 @@
 
     .drank img:hover {
       transform: scale(1.1);
+      
+    }
+    
+    .drank:hover {
+      background-color: rgba(0, 0, 0, 0.05); 
     }
 
     .drank p {
