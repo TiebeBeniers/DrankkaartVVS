@@ -20,7 +20,7 @@
 
     #drank-container {
       display: grid;
-      grid-template-columns: repeat(3, 1fr);
+      grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
       gap: 8px 10px;
       margin-top: 10px;
       justify-items: center;
@@ -45,15 +45,13 @@
 
     .drank {
       cursor: pointer;
-      padding: 5px 4px;
       text-align: center;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      padding: 10px;            /* Vergroot de klikruimte rondom */
-      min-height: 100px;        /* Zorgt dat elk blok minstens 120px hoog is */
-      cursor: pointer;
+      padding: 10px;
+      min-height: 110px;
       border-radius: 12px;
       transition: background-color 0.2s;
     }
@@ -67,11 +65,13 @@
       max-width: 100%;
       margin: 0 auto;
       box-sizing: border-box;
-  }
+    }
 
     .drank img {
-      width: 80px;
-      height: 80px;
+      width: 18vw;
+      max-width: 80px;
+      height: auto;
+      aspect-ratio: 1 / 1;
       border-radius: 10px;
       transition: transform 0.2s;
       display: block;
@@ -80,17 +80,17 @@
 
     .drank img:hover {
       transform: scale(1.1);
-      
     }
-    
+
     .drank:hover {
-      background-color: rgba(0, 0, 0, 0.05); 
+      background-color: rgba(0, 0, 0, 0.05);
     }
 
     .drank p {
       margin: 0;
       font-size: 0.9em;
       line-height: 1.1em;
+      text-align: center;
     }
 
     .prijs {
@@ -125,7 +125,7 @@
       display: flex;
       gap: 6px;
     }
-
+    
     .knop {
       width: 26px;
       height: 26px;
@@ -139,13 +139,13 @@
       user-select: none;
     }
 
-    .plus { background: #5cb85c; }       /* Groen */
+    .plus { background: #5cb85c; }
     .plus:hover { background: #4cae4c; }
 
-    .min { background: #f0ad4e; }        /* Oranje */
+    .min { background: #f0ad4e; }
     .min:hover { background: #ec971f; }
 
-    .delete { background: #d9534f; }     /* Rood */
+    .delete { background: #d9534f; }
     .delete:hover { background: #c9302c; }
 
     .header {
@@ -168,7 +168,7 @@
       height: 40px;
       border-radius: 30px;
     }
-    
+
     .header h1 {
       text-align: center;
       flex: 1;
@@ -177,17 +177,23 @@
     }
 
     @media (max-width: 400px) {
-      #drank-container {
-        grid-template-columns: repeat(3, 1fr);
-      }
-
-      .drank img {
-        width: 50px;
-        height: 50px;
-      }
-
       .header h1 {
         font-size: 1.3em;
+      }
+
+      .drank p {
+        font-size: 0.8em;
+      }
+
+      .knop {
+        width: 24px;
+        height: 24px;
+        font-size: 0.9em;
+      }
+
+      .logo {
+        width: 32px;
+        height: 32px;
       }
     }
   </style>
