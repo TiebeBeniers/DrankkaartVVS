@@ -215,196 +215,159 @@
   <button id="submit-knop" onclick="verzendBestelling()">📤 Verzenden</button>
 
   <button onclick="testBestelling()">Test Bestelling</button>
+  
   <script>
-    const drankjes = {
-      "Primus": { prijs: 4.00, count: 0, img: "https://images.ctfassets.net/vlb1ben6vtp9/5AoH7vuMfekY2Mmqs2qQKS/33964e553c07c9c991013f553148c280/Primus_Woordmerk_rood.JPG" },
-      "Mystic": { prijs: 4.00, count: 0, img: "https://assets.untappd.com/site/beer_logos_hd/beer-89870_86e4d_hd.jpeg" },
-      "Stella 0.0": { prijs: 3.30, count: 0, img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTB5kLCfZeQhV-a_6nBgljv48kNYvErRlo0Wg&s" },
-      "Cava of Wijn": { prijs: 5.00, count: 0, img: "https://www.wijnenjacobs.be/wp-content/uploads/2023/07/Cava-Pupitre.png" },
-      "Plat water": { prijs: 3.30, count: 0, img: "https://diest-pack.be/wp-content/uploads/2024/05/000675.jpg" },
-      "Bruisend water": { prijs: 3.30, count: 0, img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQqRh8DodqftblxijHwvh6-wRWEPcWiQvaQlw&s" },
-      "Cola": { prijs: 3.30, count: 0, img: "https://www.picknsave.com/content/v2/binary/image/brand/coca-cola/imageset/65265_bp_icon_cocacola_m--65265_bp_icon_coca-cola_m.png" },
-      "Cola Zero": { prijs: 3.30, count: 0, img: "https://www.picknsave.com/content/v2/binary/image/brand/coca-cola/imageset_coke-zero-logo--brandicon_cokezero.png" },
-      "Fanta": { prijs: 3.30, count: 0, img: "https://www.picknsave.com/content/v2/binary/image/brand/coca-cola/imageset/65265_bp_icon_fanta_m--65265_bp_icon_fanta_m.png" },
-      "Fuzetea": { prijs: 3.30, count: 0, img: "https://www.franceconfiserie.com/wp-content/uploads/2022/04/logo-fuzetea-france-confiserie.jpg" },
-      "Chips": { prijs: 3.30, count: 0, img: "https://raja.scene7.com/is/image/Raja/products/lay-paquet-chips-nature-lot-20-sachets-45-g_86365-00J.jpg?template=withpicto600&$image=ofr7719972BA&$picto=NoPicto&hei=600&wid=600&fmt=jpg&qlt=85,0&resMode=sharp2&op_usm=1.75,0.3,2,0" },
-      "Cup Refund": { prijs: -0.70, count: 0, img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSHioty0iBxu1yOhmz3s8_wy_u6ChVr60-1LQ&s" }
-    };
-
-    function updateTotaal() {
-      let totaal = 0;
-      for (let naam in drankjes) {
-        totaal += drankjes[naam].prijs * drankjes[naam].count;
-      }
-      document.getElementById("totaal").innerText = "Totaal: €" + totaal.toFixed(2).replace('.', ',');
-    }
-
-    function updateOverzicht() {
-      const overzicht = document.getElementById("overzicht");
-      overzicht.innerHTML = "";
-
-      let ietsGekozen = false;
-
-      for (let naam in drankjes) {
-        const drankje = drankjes[naam];
-        if (drankje.count > 0) {
-          ietsGekozen = true;
-
-          const item = document.createElement("div");
-          item.className = "overzicht-item";
-
-          item.innerHTML = `
-            <span>${drankje.count}x ${naam}</span>
-            <div class="knoppen">
-              <button class="knop plus" onclick="voegToe('${naam}', 3)">+3</button>
-              <button class="knop min" onclick="verwijder('${naam}')">-1</button>
-              <button class="knop delete" onclick="verwijderAlles('${naam}')">x</button>
-            </div>
-          `;
-
-          overzicht.appendChild(item);
-        }
-      }
-
-      if (!ietsGekozen) {
-        overzicht.innerText = "Nog niets geselecteerd.";
-      }
-    }
-
-    function voegToe(naam, aantal = 1) {
-      if (naam === "Cup Refund") {
-        const maxBekers = drankjes["Primus"].count + drankjes["Mystic"].count + drankjes["Cava of Wijn"].count;
-        if (drankjes["Cup Refund"].count + aantal > maxBekers) {
-          alert("Extra bekers via refund-ticket.");
-          return;
-        }
-      }
-
-      drankjes[naam].count += aantal;
-      updateTotaal();
-      updateOverzicht();
-    }
-
-    function verwijder(naam) {
-      if (drankjes[naam].count > 0) {
-        drankjes[naam].count--;
-        updateTotaal();
-        updateOverzicht();
-      }
-    }
-
-    function verwijderAlles(naam) {
-      drankjes[naam].count = 0;
-      updateTotaal();
-      updateOverzicht();
-    }
-
-    function resetAlles() {
-      for (let naam in drankjes) {
-        drankjes[naam].count = 0;
-      }
-      updateTotaal();
-      updateOverzicht();
-    }
-
-  // Drankknoppen toevoegen
-    const container = document.getElementById("drank-container");
-    for (let naam in drankjes) {
-      const drankje = drankjes[naam];
-      const div = document.createElement("div");
-      div.className = "drank";
-      div.innerHTML = `
-        <img src="${drankje.img}" alt="${naam}">
-        <p>${naam} (€${drankje.prijs.toFixed(2).replace('.', ',')})</p>
-      `;
-      div.addEventListener('click', () => voegToe(naam));
-      container.appendChild(div);
-    }
-
-    updateOverzicht();
-
-    function verzendBestelling() {
-  let totaal = 0;
-  let items = [];
-
-  for (let naam in drankjes) {
-    if (drankjes[naam].count > 0) {
-      let prijs = drankjes[naam].prijs;
-      let aantal = drankjes[naam].count;
-      let subtotaal = prijs * aantal;
-      totaal += subtotaal;
-
-      items.push({
-        naam: naam,
-        aantal: aantal,
-        prijs: prijs,
-        subtotaal: subtotaal
-      });
-    }
-  }
-
-  if (items.length === 0) {
-    alert("Geen bestelling geselecteerd!");
-    return;
-  }
-  console.log("Verzonden data:", {
-    items: items,
-    totaal: totaal
-  });
-      
-  let form = new FormData();
-form.append("items", JSON.stringify(items));
-form.append("totaal", totaal);
-
-fetch("https://script.google.com/macros/s/…/exec", {
-  method: "POST",
-  body: form
-});
-      
-.then(res => res.text())
-.then(text => {
-  console.log("Response:", text);
-  alert("Bestelling verzonden!");
-  resetAlles();
-})
-.catch(err => {
-  console.error("Error:", err);
-  alert("Er ging iets mis bij het verzenden.");
-});
-}
-
-    function testBestelling() {
-  let testData = {
-    items: [
-      { naam: "TestCola", aantal: 2, prijs: 3.3, subtotaal: 6.6 }
-    ],
-    totaal: 6.6
+  const drankjes = {
+    "Primus": { prijs: 4.00, count: 0, img: "https://images.ctfassets.net/vlb1ben6vtp9/5AoH7vuMfekY2Mmqs2qQKS/33964e553c07c9c991013f553148c280/Primus_Woordmerk_rood.JPG" },
+    "Mystic": { prijs: 4.00, count: 0, img: "https://assets.untappd.com/site/beer_logos_hd/beer-89870_86e4d_hd.jpeg" },
+    "Stella 0.0": { prijs: 3.30, count: 0, img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTB5kLCfZeQhV-a_6nBgljv48kNYvErRlo0Wg&s" },
+    "Cava of Wijn": { prijs: 5.00, count: 0, img: "https://www.wijnenjacobs.be/wp-content/uploads/2023/07/Cava-Pupitre.png" },
+    "Plat water": { prijs: 3.30, count: 0, img: "https://diest-pack.be/wp-content/uploads/2024/05/000675.jpg" },
+    "Bruisend water": { prijs: 3.30, count: 0, img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQqRh8DodqftblxijHwvh6-wRWEPcWiQvaQlw&s" },
+    "Cola": { prijs: 3.30, count: 0, img: "https://www.picknsave.com/content/v2/binary/image/brand/coca-cola/imageset/65265_bp_icon_cocacola_m--65265_bp_icon_coca-cola_m.png" },
+    "Cola Zero": { prijs: 3.30, count: 0, img: "https://www.picknsave.com/content/v2/binary/image/brand/coca-cola/imageset_coke-zero-logo--brandicon_cokezero.png" },
+    "Fanta": { prijs: 3.30, count: 0, img: "https://www.picknsave.com/content/v2/binary/image/brand/coca-cola/imageset/65265_bp_icon_fanta_m--65265_bp_icon_fanta_m.png" },
+    "Fuzetea": { prijs: 3.30, count: 0, img: "https://www.franceconfiserie.com/wp-content/uploads/2022/04/logo-fuzetea-france-confiserie.jpg" },
+    "Chips": { prijs: 3.30, count: 0, img: "https://raja.scene7.com/is/image/Raja/products/lay-paquet-chips-nature-lot-20-sachets-45-g_86365-00J.jpg" },
+    "Cup Refund": { prijs: -0.70, count: 0, img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSHioty0iBxu1yOhmz3s8_wy_u6ChVr60-1LQ&s" }
   };
 
-  console.log("Verzend test:", testData);
+  function updateTotaal() {
+    let totaal = 0;
+    for (let naam in drankjes) {
+      totaal += drankjes[naam].prijs * drankjes[naam].count;
+    }
+    document.getElementById("totaal").innerText = "Totaal: €" + totaal.toFixed(2).replace('.', ',');
+  }
 
-  let form = new FormData();
-form.append("items", JSON.stringify(items));
-form.append("totaal", totaal);
+  function updateOverzicht() {
+    const overzicht = document.getElementById("overzicht");
+    overzicht.innerHTML = "";
 
-fetch("https://script.google.com/macros/s/…/exec", {
-  method: "POST",
-  body: form
-});
-      
-  .then(res => res.text())
-  .then(text => {
-    console.log("Response:", text);
-    alert("Test verzonden!");
-  })
-  .catch(err => {
-    console.error("Error:", err);
-    alert("Error: " + err);
-  });
-}
-  </script>
+    let ietsGekozen = false;
+
+    for (let naam in drankjes) {
+      const drankje = drankjes[naam];
+      if (drankje.count > 0) {
+        ietsGekozen = true;
+
+        const item = document.createElement("div");
+        item.className = "overzicht-item";
+
+        item.innerHTML = `
+          <span>${drankje.count}x ${naam}</span>
+          <div class="knoppen">
+            <button class="knop plus" onclick="voegToe('${naam}', 3)">+3</button>
+            <button class="knop min" onclick="verwijder('${naam}')">-1</button>
+            <button class="knop delete" onclick="verwijderAlles('${naam}')">x</button>
+          </div>
+        `;
+
+        overzicht.appendChild(item);
+      }
+    }
+
+    if (!ietsGekozen) {
+      overzicht.innerText = "Nog niets geselecteerd.";
+    }
+  }
+
+  function voegToe(naam, aantal = 1) {
+    if (naam === "Cup Refund") {
+      const maxBekers = drankjes["Primus"].count + drankjes["Mystic"].count + drankjes["Cava of Wijn"].count;
+      if (drankjes["Cup Refund"].count + aantal > maxBekers) {
+        alert("Extra bekers via refund-ticket.");
+        return;
+      }
+    }
+
+    drankjes[naam].count += aantal;
+    updateTotaal();
+    updateOverzicht();
+  }
+
+  function verwijder(naam) {
+    if (drankjes[naam].count > 0) {
+      drankjes[naam].count--;
+      updateTotaal();
+      updateOverzicht();
+    }
+  }
+
+  function verwijderAlles(naam) {
+    drankjes[naam].count = 0;
+    updateTotaal();
+    updateOverzicht();
+  }
+
+  function resetAlles() {
+    for (let naam in drankjes) {
+      drankjes[naam].count = 0;
+    }
+    updateTotaal();
+    updateOverzicht();
+  }
+
+  // ✅ Verzenden met FormData
+  function verzendBestelling() {
+    let totaal = 0;
+    let items = [];
+
+    for (let naam in drankjes) {
+      if (drankjes[naam].count > 0) {
+        let prijs = drankjes[naam].prijs;
+        let aantal = drankjes[naam].count;
+        let subtotaal = prijs * aantal;
+        totaal += subtotaal;
+
+        items.push({ naam, aantal, prijs, subtotaal });
+      }
+    }
+
+    if (items.length === 0) {
+      alert("Geen bestelling geselecteerd!");
+      return;
+    }
+
+    let form = new FormData();
+    form.append("items", JSON.stringify(items));
+    form.append("totaal", totaal);
+
+    fetch("https://script.google.com/macros/s/AKfycbzysMFfKKvDEq6sdjHC0oZcAGDwla0UCZWuVwLLm-hFU9JFkBzctkIEy7NmMwuD5iFcPw/exec", {
+      method: "POST",
+      body: form
+    })
+    .then(res => res.text())
+    .then(text => {
+      console.log("Response:", text);
+      alert("Bestelling verzonden!");
+      resetAlles();
+    })
+    .catch(err => {
+      console.error("Error:", err);
+      alert("Er ging iets mis bij het verzenden.");
+    });
+  }
+
+  // ✅ Drankknoppen toevoegen
+  const container = document.getElementById("drank-container");
+  for (let naam in drankjes) {
+    const drankje = drankjes[naam];
+    const div = document.createElement("div");
+    div.className = "drank";
+    div.innerHTML = `
+      <img src="${drankje.img}" alt="${naam}">
+      <p>${naam} (€${drankje.prijs.toFixed(2).replace('.', ',')})</p>
+    `;
+    div.addEventListener('click', () => voegToe(naam));
+    container.appendChild(div);
+  }
+
+  updateOverzicht();
+</script>
 </body>
 </html>
+
 
 
 
