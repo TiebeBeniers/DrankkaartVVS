@@ -352,13 +352,15 @@
     totaal: totaal
   });
       
-  fetch("https://script.google.com/macros/s/AKfycbzysMFfKKvDEq6sdjHC0oZcAGDwla0UCZWuVwLLm-hFU9JFkBzctkIEy7NmMwuD5iFcPw/exec", {
+  let form = new FormData();
+form.append("items", JSON.stringify(items));
+form.append("totaal", totaal);
+
+fetch("https://script.google.com/macros/s/…/exec", {
   method: "POST",
-  body: JSON.stringify({
-    items: items,
-    totaal: totaal
-  }),
-})
+  body: form
+});
+      
 .then(res => res.text())
 .then(text => {
   console.log("Response:", text);
@@ -381,10 +383,15 @@
 
   console.log("Verzend test:", testData);
 
-  fetch("https://script.google.com/macros/s/AKfycbzysMFfKKvDEq6sdjHC0oZcAGDwla0UCZWuVwLLm-hFU9JFkBzctkIEy7NmMwuD5iFcPw/exec", {
-    method: "POST",
-    body: JSON.stringify(testData)
-  })
+  let form = new FormData();
+form.append("items", JSON.stringify(items));
+form.append("totaal", totaal);
+
+fetch("https://script.google.com/macros/s/…/exec", {
+  method: "POST",
+  body: form
+});
+      
   .then(res => res.text())
   .then(text => {
     console.log("Response:", text);
@@ -398,6 +405,7 @@
   </script>
 </body>
 </html>
+
 
 
 
