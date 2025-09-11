@@ -372,11 +372,7 @@
     headers: {
       "Content-Type": "application/json"
     },
-    body: {
-      items: items,
-      totaal: totaal
-    }
-  })
+    body: JSON.stringify({ items: items, totaal: totaal }) })
     
   .then(res => res.text())
   .then(text => {
@@ -392,6 +388,7 @@
   </script>
 </body>
 </html>
+
 
 
 
