@@ -212,6 +212,8 @@
 
   <div class="overzicht" id="overzicht"></div>
 
+  <button id="submit-knop" onclick="verzendBestelling()">📤 Verzenden</button>
+
   <script>
     const drankjes = {
       "Primus": { prijs: 4.00, count: 0, img: "https://images.ctfassets.net/vlb1ben6vtp9/5AoH7vuMfekY2Mmqs2qQKS/33964e553c07c9c991013f553148c280/Primus_Woordmerk_rood.JPG" },
@@ -319,7 +321,52 @@
     }
 
     updateOverzicht();
+
+    function verzendBestelling() {
+  let totaal = 0;
+  let items = [];
+
+  for (let naam in drankjes) {
+    if (drankjes[naam].count > 0) {
+      let prijs = drankjes[naam].prijs;
+      let aantal = drankjes[naam].count;
+      let subtotaal = prijs * aantal;
+      totaal += subtotaal;
+
+      items.push({
+        naam: naam,
+        aantal: aantal,
+        prijs: prijs,
+        subtotaal: subtotaal
+      });
+    }
+  }
+
+  if (items.length === 0) {
+    alert("Geen bestelling geselecteerd!");
+    return;
+  }
+
+  fetch("https://script.google.com/macros/s/AKfycbzysMFfKKvDEq6sdjHC0oZcAGDwla0UCZWuVwLLm-hFU9JFkBzctkIEy7NmMwuD5iFcPw/exec", {
+    method: "POST",
+    body: JSON.stringify({
+      items: items,
+      totaal: totaal
+    }),
+  })
+  .then(res => res.text())
+  .then(text => {
+    console.log("Response:", text);
+    alert("Bestelling verzonden!");
+    resetAlles(); // reset na verzenden
+  })
+  .catch(err => {
+    console.error("Error:", err);
+    alert("Er ging iets mis bij het verzenden.");
+  });
+}
   </script>
 </body>
 </html>
+
 
