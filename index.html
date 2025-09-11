@@ -354,9 +354,6 @@
       
   fetch("https://script.google.com/macros/s/AKfycbzysMFfKKvDEq6sdjHC0oZcAGDwla0UCZWuVwLLm-hFU9JFkBzctkIEy7NmMwuD5iFcPw/exec", {
   method: "POST",
-  headers: {
-    "Content-Type": "application/json"
-  },
   body: JSON.stringify({
     items: items,
     totaal: totaal
@@ -386,7 +383,6 @@
 
   fetch("https://script.google.com/macros/s/AKfycbzysMFfKKvDEq6sdjHC0oZcAGDwla0UCZWuVwLLm-hFU9JFkBzctkIEy7NmMwuD5iFcPw/exec", {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
     body: JSON.stringify(testData)
   })
   .then(res => res.text())
@@ -402,6 +398,7 @@
   </script>
 </body>
 </html>
+
 
 
 
