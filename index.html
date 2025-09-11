@@ -214,6 +214,7 @@
 
   <button id="submit-knop" onclick="verzendBestelling()">📤 Verzenden</button>
 
+  <button onclick="testBestelling()">Test Bestelling</button>
   <script>
     const drankjes = {
       "Primus": { prijs: 4.00, count: 0, img: "https://images.ctfassets.net/vlb1ben6vtp9/5AoH7vuMfekY2Mmqs2qQKS/33964e553c07c9c991013f553148c280/Primus_Woordmerk_rood.JPG" },
@@ -372,9 +373,36 @@
   alert("Er ging iets mis bij het verzenden.");
 });
 }
+
+    function testBestelling() {
+  let testData = {
+    items: [
+      { naam: "TestCola", aantal: 2, prijs: 3.3, subtotaal: 6.6 }
+    ],
+    totaal: 6.6
+  };
+
+  console.log("Verzend test:", testData);
+
+  fetch("https://script.google.com/macros/s/AKfycbzysMFfKKvDEq6sdjHC0oZcAGDwla0UCZWuVwLLm-hFU9JFkBzctkIEy7NmMwuD5iFcPw/exec", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(testData)
+  })
+  .then(res => res.text())
+  .then(text => {
+    console.log("Response:", text);
+    alert("Test verzonden!");
+  })
+  .catch(err => {
+    console.error("Error:", err);
+    alert("Error: " + err);
+  });
+}
   </script>
 </body>
 </html>
+
 
 
 
