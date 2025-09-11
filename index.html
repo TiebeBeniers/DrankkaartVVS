@@ -352,30 +352,30 @@
   });
       
   fetch("https://script.google.com/macros/s/AKfycbzysMFfKKvDEq6sdjHC0oZcAGDwla0UCZWuVwLLm-hFU9JFkBzctkIEy7NmMwuD5iFcPw/exec", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json"   // <-- belangrijk
-    },
-    body: JSON.stringify({
-      items: items,
-      totaal: totaal
-    }),
-  })
-    
-  .then(res => res.text())
-  .then(text => {
-    console.log("Response:", text);
-    alert("Bestelling verzonden!");
-    resetAlles(); // reset na verzenden
-  })
-  .catch(err => {
-    console.error("Error:", err);
-    alert("Er ging iets mis bij het verzenden.");
-  });
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json"
+  },
+  body: JSON.stringify({
+    items: items,
+    totaal: totaal
+  }),
+})
+.then(res => res.text())
+.then(text => {
+  console.log("Response:", text);
+  alert("Bestelling verzonden!");
+  resetAlles();
+})
+.catch(err => {
+  console.error("Error:", err);
+  alert("Er ging iets mis bij het verzenden.");
+});
 }
   </script>
 </body>
 </html>
+
 
 
 
