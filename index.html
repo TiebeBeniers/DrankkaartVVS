@@ -197,6 +197,20 @@
         height: 32px;
       }
     }
+
+    #submit-knop {
+      margin-top: 12px;
+      background: #092d7e;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-size: 1.1em;
+      padding: 8px 16px;
+      cursor: pointer;
+    }
+    #submit-knop:hover {
+      background-color: #061f5c;
+    }
   </style>
 </head>
 <body>
@@ -213,8 +227,6 @@
   <div class="overzicht" id="overzicht"></div>
 
   <button id="submit-knop" onclick="verzendBestelling()">📤 Verzenden</button>
-
-  <button onclick="testBestelling()">Test Bestelling</button>
   
   <script>
   const drankjes = {
@@ -367,6 +379,7 @@
 </script>
 </body>
 </html>
+
 
 
 
