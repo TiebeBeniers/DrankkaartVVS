@@ -335,15 +335,19 @@
 
     fetch("https://script.google.com/macros/s/AKfycbzysMFfKKvDEq6sdjHC0oZcAGDwla0UCZWuVwLLm-hFU9JFkBzctkIEy7NmMwuD5iFcPw/exec", {
       method: "POST",
-      mode: "no-cors",
       body: form
     })
-    .then(() => {
-  alert("Bestelling verzonden!");
-}).catch(err => {
-  console.error("Fout:", err);
-  alert("Kon niet verzenden.");
-});
+    .then(res => res.text())
+    .then(text => {
+      console.log("Response:", text);
+      alert("Bestelling verzonden!");
+      resetAlles();
+    })
+    .catch(err => {
+      console.error("Error:", err);
+      alert("Er ging iets mis bij het verzenden.");
+    });
+  }
 
   // ✅ Drankknoppen toevoegen
   const container = document.getElementById("drank-container");
@@ -363,6 +367,7 @@
 </script>
 </body>
 </html>
+
 
 
 
