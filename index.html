@@ -212,10 +212,6 @@
     #submit-knop:hover {
       background-color: #061f5c;
     }
-    
-    #submit-knop:active {
-      background-color: #061f5c;
-    }
   </style>
 </head>
 <body>
@@ -366,13 +362,16 @@
     return;
   }
       
-  console.log(JSON.stringify(items))
   fetch("https://script.google.com/macros/s/AKfycbzysMFfKKvDEq6sdjHC0oZcAGDwla0UCZWuVwLLm-hFU9JFkBzctkIEy7NmMwuD5iFcPw/exec", {
     method: "POST",
     headers: {
       "Content-Type": "application/json"
     },
-    body: JSON.stringify({ items: items, totaal: totaal }) })
+    body: JSON.stringify({ 
+      items: items,
+      totaal: totaal 
+    })
+  })
     
   .then(res => res.text())
   .then(text => {
@@ -388,6 +387,7 @@
   </script>
 </body>
 </html>
+
 
 
 
