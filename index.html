@@ -338,37 +338,53 @@
     updateOverzicht();
 
     function verzendBestelling() {
-    const drankjes = {
-        "Primus": { prijs: 4.00, count: 0, img: "https://images.ctfassets.net/vlb1ben6vtp9/5AoH7vuMfekY2Mmqs2qQKS/33964e553c07c9c991013f553148c280/Primus_Woordmerk_rood.JPG" },
-        "Mystic": { prijs: 4.00, count: 0, img: "https://assets.untappd.com/site/beer_logos_hd/beer-89870_86e4d_hd.jpeg" },
-        "Stella 0.0": { prijs: 3.30, count: 0, img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTB5kLCfZeQhV-a_6nBgljv48kNYvErRlo0Wg&s" },
-        "Cava of Wijn": { prijs: 5.00, count: 0, img: "https://www.wijnenjacobs.be/wp-content/uploads/2023/07/Cava-Pupitre.png" },
-        "Plat water": { prijs: 3.30, count: 0, img: "https://diest-pack.be/wp-content/uploads/2024/05/000675.jpg" },
-        "Bruisend water": { prijs: 3.30, count: 0, img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQqRh8DodqftblxijHwvh6-wRWEPcWiQvaQlw&s" },
-        "Cola": { prijs: 3.30, count: 0, img: "https://www.picknsave.com/content/v2/binary/image/brand/coca-cola/imageset/65265_bp_icon_cocacola_m--65265_bp_icon_coca-cola_m.png" },
-        "Cola Zero": { prijs: 3.30, count: 0, img: "https://www.picknsave.com/content/v2/binary/image/brand/coca-cola/imageset_coke-zero-logo--brandicon_cokezero.png" },
-        "Fanta": { prijs: 3.30, count: 0, img: "https://www.picknsave.com/content/v2/binary/image/brand/coca-cola/imageset/65265_bp_icon_fanta_m--65265_bp_icon_fanta_m.png" },
-        "Fuzetea": { prijs: 3.30, count: 0, img: "https://www.franceconfiserie.com/wp-content/uploads/2022/04/logo-fuzetea-france-confiserie.jpg" },
-        "Chips": { prijs: 3.30, count: 0, img: "https://raja.scene7.com/is/image/Raja/products/lay-paquet-chips-nature-lot-20-sachets-45-g_86365-00J.jpg?template=withpicto600&$image=ofr7719972BA&$picto=NoPicto&hei=600&wid=600&fmt=jpg&qlt=85,0&resMode=sharp2&op_usm=1.75,0.3,2,0" },
-        "Cup Refund": { prijs: -0.70, count: 0, img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSHioty0iBxu1yOhmz3s8_wy_u6ChVr60-1LQ&s" }
-    };
+  let totaal = 0;
+  let items = [];
 
-    const url = "https://script.google.com/macros/s/AKfycbzysMFfKKvDEq6sdjHC0oZcAGDwla0UCZWuVwLLm-hFU9JFkBzctkIEy7NmMwuD5iFcPw/exec";
-    
-    fetch(url, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(drankjes)
-    })
-    .then(response => response.json())
-    .then(data => console.log('Success:', data))
-    .catch((error) => console.error('Error:', error));
+  for (let naam in drankjes) {
+    if (drankjes[naam].count > 0) {
+      let prijs = drankjes[naam].prijs;
+      let aantal = drankjes[naam].count;
+      let subtotaal = prijs * aantal;
+      totaal += subtotaal;
+
+      items.push({
+        naam: naam,
+        aantal: aantal,
+        prijs: prijs,
+        subtotaal: subtotaal
+      });
+    }
+  }
+
+  if (items.length === 0) {
+    alert("Geen bestelling geselecteerd!");
+    return;
+  }
+
+  fetch("https://script.google.com/macros/s/AKfycbzysMFfKKvDEq6sdjHC0oZcAGDwla0UCZWuVwLLm-hFU9JFkBzctkIEy7NmMwuD5iFcPw/exec", {
+      method: 'POST',
+      headers: {
+          'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(items)
+    }),
+  })
+  .then(res => res.text())
+  .then(text => {
+    console.log("Response:", text);
+    alert("Bestelling verzonden!");
+    resetAlles(); // reset na verzenden
+  })
+  .catch(err => {
+    console.error("Error:", err);
+    alert("Er ging iets mis bij het verzenden.");
+  });
 }
   </script>
 </body>
 </html>
+
 
 
 
