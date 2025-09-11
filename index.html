@@ -299,19 +299,39 @@
   }
 
   function verwijder(naam) {
-    if (drankjes[naam].count > 0) {
-      drankjes[naam].count--;
-      updateTotaal();
-      updateOverzicht();
+  if (drankjes[naam].count > 0) {
+    drankjes[naam].count--;
+
+    // Als het een alcoholisch drankje is, check refunds
+    if (["Primus", "Mystic", "Cava of Wijn"].includes(naam)) {
+      const maxRefunds = drankjes["Primus"].count + drankjes["Mystic"].count + drankjes["Cava of Wijn"].count;
+      if (drankjes["Cup Refund"].count > maxRefunds) {
+        drankjes["Cup Refund"].count = maxRefunds;
+      }
+    }
+
+    updateTotaal();
+    updateOverzicht();
     }
   }
 
   function verwijderAlles(naam) {
-    drankjes[naam].count = 0;
-    updateTotaal();
-    updateOverzicht();
+  const removedCount = drankjes[naam].count;
+  drankjes[naam].count = 0;
+
+  // Als het een alcoholisch drankje is, pas refunds aan
+  if (["Primus", "Mystic", "Cava of Wijn"].includes(naam) && removedCount > 0) {
+    const maxRefunds = drankjes["Primus"].count + drankjes["Mystic"].count + drankjes["Cava of Wijn"].count;
+    if (drankjes["Cup Refund"].count > maxRefunds) {
+      drankjes["Cup Refund"].count = maxRefunds;
+    }
   }
 
+  // Als je Cup Refund zelf verwijdert, gewoon count op 0
+  updateTotaal();
+  updateOverzicht();
+  }
+    
   function resetAlles() {
     for (let naam in drankjes) {
       drankjes[naam].count = 0;
@@ -379,6 +399,7 @@
 </script>
 </body>
 </html>
+
 
 
 
