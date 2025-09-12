@@ -208,8 +208,83 @@
       padding: 8px 16px;
       cursor: pointer;
     }
+    
     #submit-knop:hover {
       background-color: #061f5c;
+    }
+
+    #status-icon {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: #4caf50; /* groen */
+      color: white;
+      font-size: 24px;
+      padding: 10px 14px;
+      border-radius: 50%;
+      box-shadow: 0 0 10px rgba(0,0,0,0.3);
+      display: none; /* standaard verborgen */
+      z-index: 9999;
+    }
+
+    #check-popup {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%) scale(0.8);
+      background: white;
+      border-radius: 50%;
+      width: 120px;
+      height: 120px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 0 20px rgba(0,0,0,0.3);
+      opacity: 0;
+      pointer-events: none;
+      z-index: 10000;
+    }
+
+    #check-popup.show {
+      animation: popupFade 1s ease forwards;
+    }
+
+    @keyframes popupFade {
+      0% {
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(0.5);
+      }
+      40% {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1.1);
+      }
+      70% {
+        transform: translate(-50%, -50%) scale(0.9);
+      }
+      100% {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1);
+      }
+    }
+
+/* ✅ Het groene check-icoon */
+    #check-popup svg {
+      width: 70px;
+      height: 70px;
+      stroke: #4caf50;
+      stroke-width: 6;
+      fill: none;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      stroke-dasharray: 100;
+      stroke-dashoffset: 100;
+      animation: drawCheck 0.8s ease forwards 0.3s;
+    }
+
+    @keyframes drawCheck {
+      to {
+        stroke-dashoffset: 0;
+      }
     }
   </style>
 </head>
@@ -227,7 +302,13 @@
   <div class="overzicht" id="overzicht"></div>
 
   <button id="submit-knop" onclick="verzendBestelling()">📤 Verzenden</button>
-  
+
+  <div id="status-icon">✔</div>
+    <div id="check-popup">
+      <svg viewBox="0 0 52 52">
+        <path d="M14 27 l7 7 l17 -17"></path>
+      </svg>
+    </div>
   <script>
   const drankjes = {
     "Primus": { prijs: 4.00, count: 0, img: "https://images.ctfassets.net/vlb1ben6vtp9/5AoH7vuMfekY2Mmqs2qQKS/33964e553c07c9c991013f553148c280/Primus_Woordmerk_rood.JPG" },
@@ -342,44 +423,55 @@
 
   // ✅ Verzenden met FormData
   function verzendBestelling() {
-    let totaal = 0;
-    let items = [];
+  let totaal = 0;
+  let items = [];
 
-    for (let naam in drankjes) {
-      if (drankjes[naam].count > 0) {
-        let prijs = drankjes[naam].prijs;
-        let aantal = drankjes[naam].count;
-        let subtotaal = prijs * aantal;
-        totaal += subtotaal;
+  for (let naam in drankjes) {
+    if (drankjes[naam].count > 0) {
+      let prijs = drankjes[naam].prijs;
+      let aantal = drankjes[naam].count;
+      let subtotaal = prijs * aantal;
+      totaal += subtotaal;
 
-        items.push({ naam, aantal, prijs, subtotaal });
-      }
+      items.push({ naam, aantal, prijs, subtotaal });
     }
-
-    if (items.length === 0) {
-      alert("Geen bestelling geselecteerd!");
-      return;
-    }
-
-    let form = new FormData();
-    form.append("items", JSON.stringify(items));
-    form.append("totaal", totaal);
-
-    fetch("https://script.google.com/macros/s/AKfycbzysMFfKKvDEq6sdjHC0oZcAGDwla0UCZWuVwLLm-hFU9JFkBzctkIEy7NmMwuD5iFcPw/exec", {
-      method: "POST",
-      body: form
-    })
-    .then(res => res.text())
-    .then(text => {
-      console.log("Response:", text);
-      alert("Bestelling verzonden!");
-      resetAlles();
-    })
-    .catch(err => {
-      console.error("Error:", err);
-      alert("Er ging iets mis bij het verzenden.");
-    });
   }
+
+  if (items.length === 0) {
+    alert("Geen bestelling geselecteerd!");
+    return;
+  }
+
+  let form = new FormData();
+  form.append("items", JSON.stringify(items));
+  form.append("totaal", totaal);
+
+  // 🔹 Reset direct zodat gebruiker meteen verder kan
+  resetAlles();
+
+  // 🔹 Daarna pas verzenden
+  fetch("https://script.google.com/macros/s/AKfycbzysMFfKKvDEq6sdjHC0oZcAGDwla0UCZWuVwLLm-hFU9JFkBzctkIEy7NmMwuD5iFcPw/exec", {
+    method: "POST",
+    body: form
+  })
+  .then(res => res.text())
+  .then(text => {
+    console.log("Response:", text);
+
+    // ✅ Vinkje tonen
+    const popup = document.getElementById("check-popup");
+    popup.classList.add("show");
+
+    // Na 2s weer verbergen
+    setTimeout(() => {
+    popup.classList.remove("show");
+    }, 1000);
+  })
+  .catch(err => {
+    console.error("Error:", err);
+    alert("Er ging iets mis bij het verzenden.");
+  });
+}
 
   // ✅ Drankknoppen toevoegen
   const container = document.getElementById("drank-container");
@@ -399,17 +491,3 @@
 </script>
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
