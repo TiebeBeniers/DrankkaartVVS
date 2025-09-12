@@ -289,40 +289,54 @@
   </style>
 </head>
 <body>
-  <div id="login-popup" style="
-  position: fixed;
-  top: 50%; left: 50%;
-  transform: translate(-50%, -50%) scale(0.8);
-  background: #092d7e;
-  color: white;
-  padding: 20px 30px;
-  border-radius: 12px;
-  font-size: 1.2em;
-  opacity: 0;
-  pointer-events: none;
-  text-align: center;
-  z-index: 10000;
-  box-shadow: 0 0 20px rgba(0,0,0,0.3);
-  transition: all 0.3s ease;
-">Welkom!</div>
-
-  <div id="login-overlay" style="
-  position: fixed;
-  top:0; left:0; right:0; bottom:0;
-  background: rgba(0,0,0,0.8);
-  display:flex;
-  flex-direction: column;
-  justify-content:center;
-  align-items:center;
-  z-index:9999;
-">
-  <h2 style="color:white;margin-bottom:10px;">Login Shift</h2>
-  <input type="text" id="username" placeholder="Gebruikersnaam" style="margin-bottom:6px;padding:6px;">
-  <input type="password" id="password" placeholder="Wachtwoord" style="margin-bottom:6px;padding:6px;">
-  <button onclick="login()">Login</button>
-  <p id="login-error" style="color:red;margin-top:6px;"></p>
+   <div id="login-overlay" style="
+    position: fixed;
+    top:0; left:0; right:0; bottom:0;
+    background: rgba(0,0,0,0.8);
+    display:flex;
+    flex-direction: column;
+    justify-content:center;
+    align-items:center;
+    z-index:9999;
+  ">
+  
+  <h2 style="color:white;margin-bottom:20px;">Login Shift</h2>
+  
+  <!-- Username veld -->
+  <div style="position: relative; width:220px; margin-bottom:12px;">
+    <input type="text" id="username" placeholder="Gebruikersnaam" style="padding:6px; width:100%; box-sizing:border-box;">
   </div>
+  
+  <!-- Wachtwoord veld met oogje -->
+  <div style="position: relative; width:220px; margin-bottom:12px;">
+    <input type="password" id="password" placeholder="Wachtwoord" style="padding:6px 36px 6px 6px; width:100%; box-sizing:border-box;">
+    <img id="togglePassword" src="https://cdn-icons-png.flaticon.com/512/2767/2767146.png"
+      style="position:absolute; right:8px; top:50%; transform:translateY(-50%); width:24px; height:24px; cursor:pointer;">
+  </div>
+  
+  <button onclick="login()" style="padding:6px 12px; width:220px;">Login</button>
+  <p id="login-error" style="color:red;margin-top:6px;"></p>
+</div>
 
+  <!-- Login Popup -->
+  <div id="login-popup" style="
+    position: fixed;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%) scale(0.8);
+    background: #092d7e;
+    color: white;
+    padding: 20px 30px;
+    border-radius: 12px;
+    font-size: 1.2em;
+    opacity: 0;
+    pointer-events: none;
+    text-align: center;
+    z-index: 10000;
+    box-shadow: 0 0 20px rgba(0,0,0,0.3);
+    transition: all 0.3s ease;
+  ">Welkom!</div>
+
+  <!-- Jouw bestaande header, drankjes, overzicht, etc. -->
   <div class="header">
     <img src="https://impro.usercontent.one/appid/oneComWsb/domain/vvsrotselaar.be/media/vvsrotselaar.be/onewebmedia/VVS-LOGO-zonderstitches-page-001-resized.jpg?etag=%2263d81-60844d92%22&sourceContentType=image%2Fjpeg&ignoreAspectRatio&resize=192%2B192&quality=85" alt="logo" class="logo">
     <h1>Bestelling</h1>
@@ -338,11 +352,6 @@
   <button id="submit-knop" onclick="verzendBestelling()">📤 Verzenden</button>
 
   <div id="status-icon">✔</div>
-    <div id="check-popup">
-      <svg viewBox="0 0 52 52">
-        <path d="M14 27 l7 7 l17 -17"></path>
-      </svg>
-    </div>
   <script>
     const barmannen = {
       "Tiebe Beniers": "Developer",
@@ -388,6 +397,18 @@
         popup.style.transform = "translate(-50%, -50%) scale(0.8)";
       }, 2000); // 2 seconden zichtbaar
     }
+
+    const togglePassword = document.getElementById("togglePassword");
+    const passwordField = document.getElementById("password");
+
+    const showIcon = "https://cdn-icons-png.flaticon.com/512/2767/2767146.png"; // oog open
+    const hideIcon = "https://cdn-icons-png.flaticon.com/512/2767/2767194.png"; // oog dicht
+
+    togglePassword.addEventListener("click", () => {
+      const type = passwordField.getAttribute("type") === "password" ? "text" : "password";
+      passwordField.setAttribute("type", type);
+      togglePassword.src = type === "password" ? showIcon : hideIcon;
+    });
 
   const drankjes = {
     "Primus": { prijs: 4.00, count: 0, img: "https://images.ctfassets.net/vlb1ben6vtp9/5AoH7vuMfekY2Mmqs2qQKS/33964e553c07c9c991013f553148c280/Primus_Woordmerk_rood.JPG" },
