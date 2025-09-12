@@ -289,6 +289,40 @@
   </style>
 </head>
 <body>
+  <div id="login-popup" style="
+  position: fixed;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%) scale(0.8);
+  background: #092d7e;
+  color: white;
+  padding: 20px 30px;
+  border-radius: 12px;
+  font-size: 1.2em;
+  opacity: 0;
+  pointer-events: none;
+  text-align: center;
+  z-index: 10000;
+  box-shadow: 0 0 20px rgba(0,0,0,0.3);
+  transition: all 0.3s ease;
+">Welkom!</div>
+
+  <div id="login-overlay" style="
+  position: fixed;
+  top:0; left:0; right:0; bottom:0;
+  background: rgba(0,0,0,0.8);
+  display:flex;
+  flex-direction: column;
+  justify-content:center;
+  align-items:center;
+  z-index:9999;
+">
+  <h2 style="color:white;margin-bottom:10px;">Login Shift</h2>
+  <input type="text" id="username" placeholder="Gebruikersnaam" style="margin-bottom:6px;padding:6px;">
+  <input type="password" id="password" placeholder="Wachtwoord" style="margin-bottom:6px;padding:6px;">
+  <button onclick="login()">Login</button>
+  <p id="login-error" style="color:red;margin-top:6px;"></p>
+  </div>
+
   <div class="header">
     <img src="https://impro.usercontent.one/appid/oneComWsb/domain/vvsrotselaar.be/media/vvsrotselaar.be/onewebmedia/VVS-LOGO-zonderstitches-page-001-resized.jpg?etag=%2263d81-60844d92%22&sourceContentType=image%2Fjpeg&ignoreAspectRatio&resize=192%2B192&quality=85" alt="logo" class="logo">
     <h1>Bestelling</h1>
@@ -310,6 +344,51 @@
       </svg>
     </div>
   <script>
+    const barmannen = {
+      "Tiebe Beniers": "Developer",
+      "Jitse Beniers": "Jitse",
+      "TestPersoon": "Test",
+    };
+
+    const barmannenLower = {};
+    for (const key in barmannen) {
+      barmannenLower[key.toLowerCase()] = barmannen[key];
+    }
+
+    let currentBarman = null;
+
+    function login() {
+      const userInput = document.getElementById("username").value.toLowerCase();
+      const passInput = document.getElementById("password").value;
+
+      if (barmannenLower[userInput] && barmannenLower[userInput] === passInput) {
+        currentBarman = userInput;
+        document.getElementById("login-overlay").style.display = "none";
+        showLoginPopup("Welkom, " + capitalize(userInput) + "!");
+      } else {
+        document.getElementById("login-error").innerText = "Ongeldige gebruikersnaam of wachtwoord";
+      }
+    }
+
+    // Hulpfunctie om eerste letter hoofdletter te maken
+    function capitalize(str) {
+      return str.charAt(0).toUpperCase() + str.slice(1);
+    }
+
+    function showLoginPopup(message) {
+      const popup = document.getElementById("login-popup");
+        popup.innerText = message;
+        popup.style.opacity = "1";
+        popup.style.pointerEvents = "auto";
+        popup.style.transform = "translate(-50%, -50%) scale(1)";
+
+      setTimeout(() => {
+        popup.style.opacity = "0";
+        popup.style.pointerEvents = "none";
+        popup.style.transform = "translate(-50%, -50%) scale(0.8)";
+      }, 2000); // 2 seconden zichtbaar
+    }
+
   const drankjes = {
     "Primus": { prijs: 4.00, count: 0, img: "https://images.ctfassets.net/vlb1ben6vtp9/5AoH7vuMfekY2Mmqs2qQKS/33964e553c07c9c991013f553148c280/Primus_Woordmerk_rood.JPG" },
     "Mystic": { prijs: 4.00, count: 0, img: "https://assets.untappd.com/site/beer_logos_hd/beer-89870_86e4d_hd.jpeg" },
@@ -445,6 +524,7 @@
   let form = new FormData();
   form.append("items", JSON.stringify(items));
   form.append("totaal", totaal);
+  form.append("barman", currentBarman);
 
   // 🔹 Reset direct zodat gebruiker meteen verder kan
   resetAlles();
