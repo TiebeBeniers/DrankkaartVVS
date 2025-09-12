@@ -286,6 +286,14 @@
         stroke-dashoffset: 0;
       }
     }
+
+    #login-button:disabled {
+      background-color: #e1e1e1; /* bijvoorbeeld wit om bij het gif te passen */
+      color: transparent; /* zodat de tekst niet zichtbaar is */
+      cursor: not-allowed;
+      border:none;
+      border-radius:6px;
+    }
   </style>
 </head>
 <body>
@@ -332,7 +340,7 @@
         style="position:absolute; right:8px; top:50%; transform:translateY(-50%); width:24px; height:24px; cursor:pointer;">
     </div>
   
-    <button onclick="login()" style="padding:6px 12px; width:220px;">Login</button>
+    <button id="login-button" onclick="login()" style="padding:6px 12px; width:220px;">Login</button>
     <p id="login-error" style="color:red;margin-top:6px;"></p>
   </div>
 
@@ -358,62 +366,76 @@
       </svg>
     </div>
   <script>
-
-    const barmannen = {
-      "Tiebe Beniers": "Developer",
-      "Testpersoon": "test"
-    };    
-
-    const barmannenLower = {};
-    for (const key in barmannen) {
-      barmannenLower[key.toLowerCase()] = barmannen[key];
-    }
-
     let currentBarman = null;
 
     function login() {
-      const userInput = document.getElementById("username").value.toLowerCase();
-      const passInput = document.getElementById("password").value;
+      const usernameInput = document.getElementById("username").value.trim();
+      const passwordInput = document.getElementById("password").value.trim();
 
-      if (barmannenLower[userInput] && barmannenLower[userInput] === passInput) {
-        currentBarman = userInput;
-        document.getElementById("login-overlay").style.display = "none";
-        showLoginPopup("Welkom, " + capitalize(userInput) + "!");
-      } else {
-        document.getElementById("login-error").innerText = "Ongeldige gebruikersnaam of wachtwoord";
+      if (!usernameInput || !passwordInput) {
+        document.getElementById("login-error").innerText = "Vul gebruikersnaam en wachtwoord in";
+        return;
       }
+
+      // ✅ Toon laadicoon
+      const loginButton = document.getElementById("login-button");
+        loginButton.disabled = true;
+        loginButton.innerHTML = '<img src="https://media2.giphy.com/media/v1.Y2lkPTc5MGI3NjExZm5weDBvcGdmYm9langwYngyYnF0cXdjYTBoeG5zMHFqb29qMHd6dyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/6036p0cTnjUrNFpAlr/giphy.gif" alt="Loading..." style="height:32px;">';
+
+      let form = new FormData();
+      form.append("username", usernameInput);
+      form.append("password", passwordInput);
+
+      fetch("https://script.google.com/macros/s/AKfycbzzld0Hi60HAWNV3eVj0-TM7nlstyArbjS68oVstNtZK6XM7XKdZJO_yXLM_PK9fr8K/exec", {
+        method: "POST",
+        body: form
+      })
+      .then(res => res.json())
+      .then(data => {
+        loginButton.disabled = false;
+        loginButton.innerHTML = "Login";
+        if (data.status === "ok") {
+          currentBarman = usernameInput.toUpperCase();
+          document.getElementById("login-overlay").style.display = "none";
+          showLoginPopup("Welkom, " + currentBarman + "!");
+        } else {
+          document.getElementById("login-error").innerText = "Ongeldige gebruikersnaam of wachtwoord";
+        }
+      })
+      .catch(err => {
+        console.error("Login error:", err);
+        document.getElementById("login-error").innerText = "Er ging iets mis bij het verbinden.";
+      });
     }
 
-    // Hulpfunctie om eerste letter hoofdletter te maken
-    function capitalize(str) {
-      return str.charAt(0).toUpperCase() + str.slice(1);
-    }
-
+    // Popup bij succesvolle login
     function showLoginPopup(message) {
       const popup = document.getElementById("login-popup");
-        popup.innerText = message;
-        popup.style.opacity = "1";
-        popup.style.pointerEvents = "auto";
-        popup.style.transform = "translate(-50%, -50%) scale(1)";
+      popup.innerText = message;
+      popup.style.opacity = "1";
+      popup.style.pointerEvents = "auto";
+      popup.style.transform = "translate(-50%, -50%) scale(1)";
 
       setTimeout(() => {
         popup.style.opacity = "0";
         popup.style.pointerEvents = "none";
         popup.style.transform = "translate(-50%, -50%) scale(0.8)";
-      }, 2000); // 2 seconden zichtbaar
+      }, 2000);
     }
 
+    // 👁️ Toggle password visibility
     const togglePassword = document.getElementById("togglePassword");
     const passwordField = document.getElementById("password");
 
-    const showIcon = "https://cdn-icons-png.flaticon.com/512/2767/2767146.png"; // oog open
-    const hideIcon = "https://cdn-icons-png.flaticon.com/512/2767/2767194.png"; // oog dicht
+    const showIcon = "https://cdn-icons-png.flaticon.com/512/2767/2767146.png";
+    const hideIcon = "https://cdn-icons-png.flaticon.com/512/2767/2767194.png";
 
     togglePassword.addEventListener("click", () => {
       const type = passwordField.getAttribute("type") === "password" ? "text" : "password";
       passwordField.setAttribute("type", type);
       togglePassword.src = type === "password" ? showIcon : hideIcon;
     });
+
 
   const drankjes = {
     "Primus": { prijs: 4.00, count: 0, img: "https://images.ctfassets.net/vlb1ben6vtp9/5AoH7vuMfekY2Mmqs2qQKS/33964e553c07c9c991013f553148c280/Primus_Woordmerk_rood.JPG" },
