@@ -217,6 +217,7 @@
       font-size: 1.1em;
       padding: 8px 16px;
       cursor: pointer;
+      width: 220px;
     }
 
     #submit-knop:hover {
@@ -456,6 +457,95 @@
     #scrolldown-iframe:hover {
         background: #448844;
     }
+
+    #cash-overlay,
+    #kaart-overlay {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0,0,0,0.7);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 2000;
+    }
+
+    #cash-box,
+    #kaart-box {
+      position: relative; /* 🔑 nodig zodat het kruisje zich hierbinnen positioneert */
+      background: #fff;
+      padding: 20px;
+      border-radius: 10px;
+      text-align: center;
+      width: 400px;
+      max-width: 90%;
+      box-shadow: 0 5px 20px rgba(0,0,0,0.3);
+    }
+
+    #close-cash,
+    #close-kaart {
+      position: absolute;
+      top: 10px;
+      right: 15px;
+      font-size: 28px;
+      font-weight: bold;
+      cursor: pointer;
+      color: #555;
+      line-height: 1;
+    }
+
+    #geld-knoppen button {
+      margin: 5px;
+      padding: 10px 15px;
+      font-size: 16px;
+      border: none;
+      border-radius: 6px;
+      background: #007bff;
+      color: white;
+      cursor: pointer;
+    }
+    #geld-knoppen button:hover {
+      background: #0056b3;
+    }
+
+    #terminaloptions button {
+      margin: 5px;
+      padding: 10px 15px;
+      font-size: 16px;
+      border: none;
+      border-radius: 6px;
+      background: #007bff;
+      color: white;
+      cursor: pointer;
+    }
+    #terminaloptions button:hover {
+      background: #0056b3;
+    }
+
+    #cash-betaald {
+      margin-top: 15px;
+      padding: 10px 20px;
+      font-size: 18px;
+      background: green;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    #cash-betaald:hover {
+      background: darkgreen;
+    }
+    #cash-overzicht {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column; /* zodat meerdere items netjes onder elkaar komen */
+      margin-bottom: 15px; /* beetje ruimte onder het overzicht */
+    }
+    #cash-overzicht > div {
+      width: 100%;
+      text-align: center; /* tekst in het midden */
+    }
   </style>
 </head>
 <body>
@@ -493,8 +583,21 @@
     <div id="drank-container"></div>
     <div class="prijs" id="totaal">Totaal: €0,00</div>
     <div class="overzicht" id="overzicht"></div>
-    <button id="qr-knop" class="onderaan" onclick="toonQR(totaal)">💳 Betalen QR</button>
-    <button id="submit-knop" class="onderaan" onclick="verzendBestelling()">📤 Verzenden</button>
+    <button id="kaart-knop" class="onderaan">💳 Betalen met kaart</button>
+    <button id="qr-knop" class="onderaan" onclick="toonQR(totaal)">📱 Betalen QR</button>
+    <button id="cash-knop" class="onderaan" onclick="toonCash(totaal)">💵 Cash betalen</button>
+  </div>
+
+  <div id="kaart-overlay">
+    <div id="kaart-box">
+      <span id="close-kaart">&times;</span>
+      <h2 style="margin-bottom:10px;">Kies Betaalterminal</h2>
+      <div id="terminaloptions">
+        <button onclick="chooseTerminal(1)">1</button>
+        <button onclick="chooseTerminal(2)">2</button>
+        <button onclick="chooseTerminal(3)">3</button>
+      </div>
+    </div>
   </div>
 
   <div id="qr-overlay">
@@ -511,330 +614,442 @@
       </div>
     </div>
   </div>
+
+  <div id="cash-overlay">
+    <div id="cash-box">
+      <span id="close-cash">&times;</span>
+      <h2>Cash betaling</h2>
+      <div id="cash-overzicht"></div>
+      <p id="cash-totaal" style="font-weight:bold; font-size:20px;"></p>
+      <div id="geld-knoppen">
+        <button onclick="addCash(50)">€50</button>
+        <button onclick="addCash(20)">€20</button>
+        <button onclick="addCash(10)">€10</button>
+        <button onclick="addCash(5)">€5</button>
+        <button onclick="addCash(2)">€2</button>
+        <button onclick="addCash(1)">€1</button>
+        <button onclick="exactCash()">✅</button>
+      </div>
+
+      <p id="ontvangen">Ontvangen: €0,00</p>
+      <p id="terug">Terug te geven: €0,00</p>
+
+      <button id="cash-betaald" onclick="afrondenCash()">✅ Betaald</button>
+    </div>
+  </div>
   
   <div id="status-icon">✔</div>
-    <div id="check-popup">
-      <svg viewBox="0 0 52 52">
-        <path d="M14 27 l7 7 l17 -17"></path>
-      </svg>
-    </div>
+  <div id="check-popup">
+    <svg viewBox="0 0 52 52">
+      <path d="M14 27 l7 7 l17 -17"></path>
+    </svg>
+  </div>
 
   <script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
   <script>
-    function toonQR() {
-    let totaal = 0;
+      let currentBarman = null;
+      let currentRole = null;
 
-    // Bereken totaalbedrag
-    for (let naam in drankjes) {
-      totaal += drankjes[naam].prijs * drankjes[naam].count;
-    }
+      function login() {
+        const usernameInput = document.getElementById("username").value.trim();
+        const passwordInput = document.getElementById("password").value.trim();
 
-    if (totaal <= 0) {
-      alert("Nog niets geselecteerd om te betalen!");
-      return;
-    }
-    
-    // Update bedrag in overlay
-    const bedragElement = document.getElementById("qr-bedrag");
-    bedragElement.innerText = "€" + totaal.toFixed(2).replace('.', ',');
-
-    const bedragInCenten = Math.round(totaal * 100);
-
-    // ⚠️ Vervang '123456789' door je echte merchant ID
-    const link = `https://payconiq.com/pay?to=123456789&amount=${bedragInCenten}&description=Bestelling`;
-
-    // QR overlay zichtbaar maken
-    const overlay = document.getElementById("qr-overlay");
-    overlay.style.display = "flex";
-
-    // QR-code in canvas tekenen
-    const canvas = document.getElementById("qrcode");
-    QRCode.toCanvas(canvas, link, { width: 250 }, function (error) {
-      if (error) console.error(error);
-      });
-    }
-
-    // Sluiten van overlay
-    document.getElementById("close-qr").onclick = function() {
-      document.getElementById("qr-overlay").style.display = "none";
-    };
-    
-    let currentBarman = null;
-    let currentRole = null;
-
-    function login() {
-      const usernameInput = document.getElementById("username").value.trim();
-      const passwordInput = document.getElementById("password").value.trim();
-
-      if (!usernameInput || !passwordInput) {
-        document.getElementById("login-error").innerText = "Vul gebruikersnaam en wachtwoord in";
-        return;
-      }
-
-      // ✅ Toon laadicoon
-      const loginButton = document.getElementById("login-button");
-        loginButton.disabled = true;
-        loginButton.innerHTML = '<img src="https://i.giphy.com/6036p0cTnjUrNFpAlr.webp" alt="Loading..." style="height:32px;">';
-
-      let form = new FormData();
-      form.append("username", usernameInput);
-      form.append("password", passwordInput);
-
-      fetch("https://script.google.com/macros/s/AKfycbzzld0Hi60HAWNV3eVj0-TM7nlstyArbjS68oVstNtZK6XM7XKdZJO_yXLM_PK9fr8K/exec", {
-        method: "POST",
-        body: form
-      })
-      .then(res => res.json())
-      .then(data => {
-        loginButton.disabled = false;
-        loginButton.innerHTML = "Login";
-        if (data.status === "ok") {
-          currentBarman = usernameInput.toUpperCase();
-          currentRole = data.role;
-          document.getElementById("login-overlay").style.display = "none";
-          showLoginPopup("Welkom, " + currentBarman + "!");
-          document.getElementById("logged-in-user").innerText = "Logged in as: " + currentBarman + " (" + currentRole.toUpperCase() + ")";
-        } else {
-          document.getElementById("login-error").innerText = "Ongeldige gebruikersnaam of wachtwoord";
+        if (!usernameInput || !passwordInput) {
+          document.getElementById("login-error").innerText = "Vul gebruikersnaam en wachtwoord in";
+          return;
         }
-      })
-      .catch(err => {
-        console.error("Login error:", err);
-        document.getElementById("login-error").innerText = "Er ging iets mis bij het verbinden.";
+
+        // ✅ Toon laadicoon
+        const loginButton = document.getElementById("login-button");
+          loginButton.disabled = true;
+          loginButton.innerHTML = '<img src="https://i.giphy.com/6036p0cTnjUrNFpAlr.webp" alt="Loading..." style="height:32px;">';
+
+        let form = new FormData();
+        form.append("username", usernameInput);
+        form.append("password", passwordInput);
+
+        fetch("https://script.google.com/macros/s/AKfycbzzld0Hi60HAWNV3eVj0-TM7nlstyArbjS68oVstNtZK6XM7XKdZJO_yXLM_PK9fr8K/exec", {
+          method: "POST",
+          body: form
+        })
+        .then(res => res.json())
+        .then(data => {
+          loginButton.disabled = false;
+          loginButton.innerHTML = "Login";
+          if (data.status === "ok") {
+            currentBarman = usernameInput.toUpperCase();
+            currentRole = data.role;
+            document.getElementById("login-overlay").style.display = "none";
+            showLoginPopup("Welkom, " + currentBarman + "!");
+            document.getElementById("logged-in-user").innerText = "Logged in as: " + currentBarman + " (" + currentRole.toUpperCase() + ")";
+          } else {
+            document.getElementById("login-error").innerText = "Ongeldige gebruikersnaam of wachtwoord";
+          }
+        })
+        .catch(err => {
+          console.error("Login error:", err);
+          document.getElementById("login-error").innerText = "Er ging iets mis bij het verbinden.";
+        });
+      }
+
+      const logo = document.querySelector(".logo");
+      const bestelScherm = document.getElementById("bestel-scherm"); // container van je drankknoppen + knoppen
+      const managerIframeContainer = document.getElementById("manager-iframe-container");
+      const closeIframeBtn = document.getElementById("close-iframe");
+      const refreshIframeBtn = document.getElementById("refresh-iframe");
+      const managerIframe = document.getElementById("manager-iframe");
+
+      // Klik op logo alleen als rol manager
+      logo.addEventListener("click", () => {
+        if (currentRole && currentRole.toLowerCase() === "manager") {
+          bestelScherm.style.display = "none";
+          managerIframeContainer.style.display = "block";
+        }
+      });
+
+      // Sluit-knop iframe
+      closeIframeBtn.addEventListener("click", () => {
+        managerIframeContainer.style.display = "none";
+        bestelScherm.style.display = "block";
+      });
+      refreshIframeBtn.addEventListener("click", () => {
+        managerIframe.src = managerIframe.src;
+      });
+
+      // Popup bij succesvolle login
+      function showLoginPopup(message) {
+        const popup = document.getElementById("login-popup");
+        popup.innerText = message;
+        popup.style.opacity = "1";
+        popup.style.pointerEvents = "auto";
+        popup.style.transform = "translate(-50%, -50%) scale(1)";
+
+        setTimeout(() => {
+          popup.style.opacity = "0";
+          popup.style.pointerEvents = "none";
+          popup.style.transform = "translate(-50%, -50%) scale(0.8)";
+        }, 2000);
+      }
+
+      // 👁️ Toggle password visibility
+      const togglePassword = document.getElementById("togglePassword");
+      const passwordField = document.getElementById("password");
+
+      const showIcon = "https://cdn-icons-png.flaticon.com/512/2767/2767146.png";
+      const hideIcon = "https://cdn-icons-png.flaticon.com/512/2767/2767194.png";
+
+      togglePassword.addEventListener("click", () => {
+        const type = passwordField.getAttribute("type") === "password" ? "text" : "password";
+        passwordField.setAttribute("type", type);
+        togglePassword.src = type === "password" ? showIcon : hideIcon;
+      });
+
+
+      const drankjes = {
+        "Primus": { prijs: 4.00, count: 0, img: "https://images.ctfassets.net/vlb1ben6vtp9/5AoH7vuMfekY2Mmqs2qQKS/33964e553c07c9c991013f553148c280/Primus_Woordmerk_rood.JPG" },
+        "Mystic": { prijs: 4.00, count: 0, img: "https://assets.untappd.com/site/beer_logos_hd/beer-89870_86e4d_hd.jpeg" },
+        "Stella 0.0": { prijs: 3.30, count: 0, img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTB5kLCfZeQhV-a_6nBgljv48kNYvErRlo0Wg&s" },
+        "Cava of Wijn": { prijs: 5.00, count: 0, img: "https://www.wijnenjacobs.be/wp-content/uploads/2023/07/Cava-Pupitre.png" },
+        "Plat water": { prijs: 3.30, count: 0, img: "https://diest-pack.be/wp-content/uploads/2024/05/000675.jpg" },
+        "Bruisend water": { prijs: 3.30, count: 0, img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQqRh8DodqftblxijHwvh6-wRWEPcWiQvaQlw&s" },
+        "Cola": { prijs: 3.30, count: 0, img: "https://www.picknsave.com/content/v2/binary/image/brand/coca-cola/imageset/65265_bp_icon_cocacola_m--65265_bp_icon_coca-cola_m.png" },
+        "Cola Zero": { prijs: 3.30, count: 0, img: "https://www.picknsave.com/content/v2/binary/image/brand/coca-cola/imageset_coke-zero-logo--brandicon_cokezero.png" },
+        "Fanta": { prijs: 3.30, count: 0, img: "https://www.picknsave.com/content/v2/binary/image/brand/coca-cola/imageset/65265_bp_icon_fanta_m--65265_bp_icon_fanta_m.png" },
+        "Fuzetea": { prijs: 3.30, count: 0, img: "https://www.franceconfiserie.com/wp-content/uploads/2022/04/logo-fuzetea-france-confiserie.jpg" },
+        "Chips": { prijs: 3.30, count: 0, img: "https://raja.scene7.com/is/image/Raja/products/lay-paquet-chips-nature-lot-20-sachets-45-g_86365-00J.jpg?template=withpicto600&$image=ofr7719972BA&$picto=NoPicto&hei=600&wid=600&fmt=jpg&qlt=85,0&resMode=sharp2&op_usm=1.75,0.3,2,0" },
+        "Cup Refund": { prijs: -0.70, count: 0, img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSHioty0iBxu1yOhmz3s8_wy_u6ChVr60-1LQ&s" }
+      };
+
+      function updateTotaal() {
+        let totaal = 0;
+        for (let naam in drankjes) {
+          totaal += drankjes[naam].prijs * drankjes[naam].count;
+        }
+        document.getElementById("totaal").innerText = "Totaal: €" + totaal.toFixed(2).replace('.', ',');
+      }
+
+      function updateOverzicht() {
+        const overzicht = document.getElementById("overzicht");
+        overzicht.innerHTML = "";
+
+        let ietsGekozen = false;
+
+        for (let naam in drankjes) {
+          const drankje = drankjes[naam];
+          if (drankje.count > 0) {
+            ietsGekozen = true;
+
+            const item = document.createElement("div");
+            item.className = "overzicht-item";
+
+            item.innerHTML = `
+              <span>${drankje.count}x ${naam}</span>
+              <div class="knoppen">
+                <button class="knop plus" onclick="voegToe('${naam}', 3)">+3</button>
+                <button class="knop min" onclick="verwijder('${naam}')">-1</button>
+                <button class="knop delete" onclick="verwijderAlles('${naam}')">x</button>
+              </div>
+            `;
+
+            overzicht.appendChild(item);
+          }
+        }
+
+        if (!ietsGekozen) {
+          overzicht.innerText = "Nog niets geselecteerd.";
+        }
+      }
+
+      function voegToe(naam, aantal = 1) {
+        if (naam === "Cup Refund") {
+          const maxBekers = drankjes["Primus"].count + drankjes["Mystic"].count + drankjes["Cava of Wijn"].count;
+          if (drankjes["Cup Refund"].count + aantal > maxBekers) {
+            alert("Extra bekers via refund-ticket.");
+            return;
+          }
+        }
+
+        drankjes[naam].count += aantal;
+        updateTotaal();
+        updateOverzicht();
+      }
+
+      function verwijder(naam) {
+      if (drankjes[naam].count > 0) {
+        drankjes[naam].count--;
+
+        // Refund check beker
+        if (["Primus", "Mystic", "Cava of Wijn"].includes(naam)) {
+          const maxRefunds = drankjes["Primus"].count + drankjes["Mystic"].count + drankjes["Cava of Wijn"].count;
+          if (drankjes["Cup Refund"].count > maxRefunds) {
+            drankjes["Cup Refund"].count = maxRefunds;
+          }
+        }
+
+        updateTotaal();
+        updateOverzicht();
+        }
+      }
+
+      function verwijderAlles(naam) {
+        const removedCount = drankjes[naam].count;
+        drankjes[naam].count = 0;
+
+        // Als het een alcoholisch drankje is, pas refunds aan
+        if (["Primus", "Mystic", "Cava of Wijn"].includes(naam) && removedCount > 0) {
+          const maxRefunds = drankjes["Primus"].count + drankjes["Mystic"].count + drankjes["Cava of Wijn"].count;
+          if (drankjes["Cup Refund"].count > maxRefunds) {
+            drankjes["Cup Refund"].count = maxRefunds;
+          }
+        }
+
+        // Als je Cup Refund zelf verwijdert, gewoon count op 0
+        updateTotaal();
+        updateOverzicht();
+      }
+    
+      function resetAlles() {
+        for (let naam in drankjes) {
+          drankjes[naam].count = 0;
+        }
+        updateTotaal();
+        updateOverzicht();
+      }
+
+      let ontvangen = 0;
+      let cashTotaal = 0;
+
+      function berekenTotaal() {
+        let totaal = 0;
+        for (let naam in drankjes) {
+          totaal += drankjes[naam].prijs * drankjes[naam].count;
+        }
+        return totaal;
+      }
+
+      function toonKaart() {
+        totaal = berekenTotaal();
+
+        if (totaal <= 0) {
+          alert("Nog niets geselecteerd om te betalen!");
+          return;
+        }
+
+        document.getElementById("kaart-overlay").style.display = "flex";
+      }
+
+      // Functie voor terminalkeuze (voorlopig niets)
+      function chooseTerminal(terminal) {
+        console.log("Gekozen terminal:", terminal);
+        // hier kan later verdere logica komen
+      }
+
+      // Sluiten van overlay
+      document.getElementById("close-kaart").onclick = function() {
+        document.getElementById("kaart-overlay").style.display = "none";
+      };
+
+      // Klik op de kaart-knop om overlay te tonen
+      document.getElementById("kaart-knop").onclick = function() {
+        toonKaart();
+      };
+
+      function toonQR() {
+        totaal = berekenTotaal();
+
+        if (totaal <= 0) {
+          alert("Nog niets geselecteerd om te betalen!");
+          return;
+        }
+    
+        // Update bedrag in overlay
+        const bedragElement = document.getElementById("qr-bedrag");
+        bedragElement.innerText = "€" + totaal.toFixed(2).replace('.', ',');
+
+        const bedragInCenten = Math.round(totaal * 100);
+
+        // ⚠️ Vervang '123456789' door je echte merchant ID
+        const link = `https://payconiq.com/pay?to=123456789&amount=${bedragInCenten}&description=Bestelling`;
+
+        // QR overlay zichtbaar maken
+        const overlay = document.getElementById("qr-overlay");
+        overlay.style.display = "flex";
+
+        // QR-code in canvas tekenen
+        const canvas = document.getElementById("qrcode");
+        QRCode.toCanvas(canvas, link, { width: 250 }, function (error) {
+          if (error) console.error(error);
+        });
+      }
+
+      // Sluiten van overlay
+      document.getElementById("close-qr").onclick = function() {
+        document.getElementById("qr-overlay").style.display = "none";
+      };
+    
+
+      function toonCash() {
+        ontvangen = 0;
+        totaal = berekenTotaal();
+
+        if (totaal <= 0) {
+          alert("Nog niets geselecteerd om te betalen!");
+          return;
+        }
+
+        // Bouw overzicht opnieuw ZONDER knoppen
+        const cashOverzicht = document.getElementById("cash-overzicht");
+        cashOverzicht.innerHTML = "";
+
+        for (let naam in drankjes) {
+          const drankje = drankjes[naam];
+          if (drankje.count > 0) {
+            const div = document.createElement("div");
+            div.textContent = `${drankje.count}x ${naam}`;
+            cashOverzicht.appendChild(div);
+          }
+        }
+
+        document.getElementById("cash-totaal").innerText =
+          "Totaal te betalen: €" + cashTotaal.toFixed(2).replace('.', ',');
+
+        document.getElementById("ontvangen").innerText = "Ontvangen: €0,00";
+        document.getElementById("terug").innerText = "Terug te geven: €0,00";
+        document.getElementById("cash-overlay").style.display = "flex";
+      }
+
+      function addCash(bedrag) {
+        ontvangen += bedrag;
+        document.getElementById("ontvangen").innerText = "Ontvangen: €" + ontvangen.toFixed(2);
+        let terug = ontvangen - totaal;
+        document.getElementById("terug").innerText = "Terug te geven: €" + (terug > 0 ? terug.toFixed(2) : "0,00");
+      }
+      function exactCash() {
+        ontvangen = totaal; // meteen gelijk aan totaal
+        document.getElementById("ontvangen").innerText = "Ontvangen: €" + ontvangen.toFixed(2);
+        document.getElementById("terug").innerText = "Terug te geven: €0,00";
+      }
+      function afrondenCash() {
+        if (ontvangen < totaal) {
+          alert("Niet genoeg ontvangen!");
+          return;
+        }
+        document.getElementById("cash-overlay").style.display = "none";
+        verzendBestelling(); // hier stuur je naar de spreadsheet
+      }
+
+      // Sluiten van overlay
+      document.getElementById("close-cash").onclick = function() {
+        document.getElementById("cash-overlay").style.display = "none";
+      };
+
+
+      // ✅ Verzenden met FormData
+      function verzendBestelling() {
+        let totaal = 0;
+        let items = [];
+
+        for (let naam in drankjes) {
+          if (drankjes[naam].count > 0) {
+            let prijs = drankjes[naam].prijs;
+            let aantal = drankjes[naam].count;
+            let subtotaal = prijs * aantal;
+            totaal += subtotaal;
+
+            items.push({ naam, aantal, prijs, subtotaal });
+          }
+        }
+
+        if (items.length === 0) {
+          alert("Geen bestelling geselecteerd!");
+          return;
+        }
+
+        let form = new FormData();
+          form.append("items", JSON.stringify(items));
+          form.append("totaal", totaal);
+          form.append("barman", currentBarman);
+
+        // 🔹 Reset direct zodat gebruiker meteen verder kan
+        resetAlles();
+
+        // 🔹 Daarna pas verzenden
+        fetch("https://script.google.com/macros/s/AKfycbzysMFfKKvDEq6sdjHC0oZcAGDwla0UCZWuVwLLm-hFU9JFkBzctkIEy7NmMwuD5iFcPw/exec", {
+          method: "POST",
+          body: form
+        })
+        .then(res => res.text())
+        .then(text => {
+          console.log("Response:", text);
+
+          // ✅ Vinkje tonen
+          const popup = document.getElementById("check-popup");
+          popup.classList.add("show");
+
+          // Na 2s weer verbergen
+          setTimeout(() => {
+          popup.classList.remove("show");
+          }, 1000);
+        })
+        .catch(err => {
+        console.error("Error:", err);
+        alert("Er ging iets mis bij het verzenden.");
       });
     }
 
-    const logo = document.querySelector(".logo");
-    const bestelScherm = document.getElementById("bestel-scherm"); // container van je drankknoppen + knoppen
-    const managerIframeContainer = document.getElementById("manager-iframe-container");
-    const closeIframeBtn = document.getElementById("close-iframe");
-    const refreshIframeBtn = document.getElementById("refresh-iframe");
-    const managerIframe = document.getElementById("manager-iframe");
-
-    // Klik op logo alleen als rol manager
-    logo.addEventListener("click", () => {
-      if (currentRole && currentRole.toLowerCase() === "manager") {
-        bestelScherm.style.display = "none";
-        managerIframeContainer.style.display = "block";
-      }
-    });
-
-    // Sluit-knop iframe
-    closeIframeBtn.addEventListener("click", () => {
-      managerIframeContainer.style.display = "none";
-      bestelScherm.style.display = "block";
-    });
-    refreshIframeBtn.addEventListener("click", () => {
-        managerIframe.src = managerIframe.src;
-    });
-
-    // Popup bij succesvolle login
-    function showLoginPopup(message) {
-      const popup = document.getElementById("login-popup");
-      popup.innerText = message;
-      popup.style.opacity = "1";
-      popup.style.pointerEvents = "auto";
-      popup.style.transform = "translate(-50%, -50%) scale(1)";
-
-      setTimeout(() => {
-        popup.style.opacity = "0";
-        popup.style.pointerEvents = "none";
-        popup.style.transform = "translate(-50%, -50%) scale(0.8)";
-      }, 2000);
-    }
-
-    // 👁️ Toggle password visibility
-    const togglePassword = document.getElementById("togglePassword");
-    const passwordField = document.getElementById("password");
-
-    const showIcon = "https://cdn-icons-png.flaticon.com/512/2767/2767146.png";
-    const hideIcon = "https://cdn-icons-png.flaticon.com/512/2767/2767194.png";
-
-    togglePassword.addEventListener("click", () => {
-      const type = passwordField.getAttribute("type") === "password" ? "text" : "password";
-      passwordField.setAttribute("type", type);
-      togglePassword.src = type === "password" ? showIcon : hideIcon;
-    });
-
-
-  const drankjes = {
-    "Primus": { prijs: 4.00, count: 0, img: "https://images.ctfassets.net/vlb1ben6vtp9/5AoH7vuMfekY2Mmqs2qQKS/33964e553c07c9c991013f553148c280/Primus_Woordmerk_rood.JPG" },
-    "Mystic": { prijs: 4.00, count: 0, img: "https://assets.untappd.com/site/beer_logos_hd/beer-89870_86e4d_hd.jpeg" },
-    "Stella 0.0": { prijs: 3.30, count: 0, img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTB5kLCfZeQhV-a_6nBgljv48kNYvErRlo0Wg&s" },
-    "Cava of Wijn": { prijs: 5.00, count: 0, img: "https://www.wijnenjacobs.be/wp-content/uploads/2023/07/Cava-Pupitre.png" },
-    "Plat water": { prijs: 3.30, count: 0, img: "https://diest-pack.be/wp-content/uploads/2024/05/000675.jpg" },
-    "Bruisend water": { prijs: 3.30, count: 0, img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQqRh8DodqftblxijHwvh6-wRWEPcWiQvaQlw&s" },
-    "Cola": { prijs: 3.30, count: 0, img: "https://www.picknsave.com/content/v2/binary/image/brand/coca-cola/imageset/65265_bp_icon_cocacola_m--65265_bp_icon_coca-cola_m.png" },
-    "Cola Zero": { prijs: 3.30, count: 0, img: "https://www.picknsave.com/content/v2/binary/image/brand/coca-cola/imageset_coke-zero-logo--brandicon_cokezero.png" },
-    "Fanta": { prijs: 3.30, count: 0, img: "https://www.picknsave.com/content/v2/binary/image/brand/coca-cola/imageset/65265_bp_icon_fanta_m--65265_bp_icon_fanta_m.png" },
-    "Fuzetea": { prijs: 3.30, count: 0, img: "https://www.franceconfiserie.com/wp-content/uploads/2022/04/logo-fuzetea-france-confiserie.jpg" },
-    "Chips": { prijs: 3.30, count: 0, img: "https://raja.scene7.com/is/image/Raja/products/lay-paquet-chips-nature-lot-20-sachets-45-g_86365-00J.jpg?template=withpicto600&$image=ofr7719972BA&$picto=NoPicto&hei=600&wid=600&fmt=jpg&qlt=85,0&resMode=sharp2&op_usm=1.75,0.3,2,0" },
-    "Cup Refund": { prijs: -0.70, count: 0, img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSHioty0iBxu1yOhmz3s8_wy_u6ChVr60-1LQ&s" }
-  };
-
-  function updateTotaal() {
-    let totaal = 0;
-    for (let naam in drankjes) {
-      totaal += drankjes[naam].prijs * drankjes[naam].count;
-    }
-    document.getElementById("totaal").innerText = "Totaal: €" + totaal.toFixed(2).replace('.', ',');
-  }
-
-  function updateOverzicht() {
-    const overzicht = document.getElementById("overzicht");
-    overzicht.innerHTML = "";
-
-    let ietsGekozen = false;
-
+    // ✅ Drankknoppen toevoegen
+    const container = document.getElementById("drank-container");
     for (let naam in drankjes) {
       const drankje = drankjes[naam];
-      if (drankje.count > 0) {
-        ietsGekozen = true;
-
-        const item = document.createElement("div");
-        item.className = "overzicht-item";
-
-        item.innerHTML = `
-          <span>${drankje.count}x ${naam}</span>
-          <div class="knoppen">
-            <button class="knop plus" onclick="voegToe('${naam}', 3)">+3</button>
-            <button class="knop min" onclick="verwijder('${naam}')">-1</button>
-            <button class="knop delete" onclick="verwijderAlles('${naam}')">x</button>
-          </div>
-        `;
-
-        overzicht.appendChild(item);
-      }
+      const div = document.createElement("div");
+      div.className = "drank";
+      div.innerHTML = `
+        <img src="${drankje.img}" alt="${naam}">
+        <p>${naam} (€${drankje.prijs.toFixed(2).replace('.', ',')})</p>
+      `;
+      div.addEventListener('click', () => voegToe(naam));
+      container.appendChild(div);
     }
-
-    if (!ietsGekozen) {
-      overzicht.innerText = "Nog niets geselecteerd.";
-    }
-  }
-
-  function voegToe(naam, aantal = 1) {
-    if (naam === "Cup Refund") {
-      const maxBekers = drankjes["Primus"].count + drankjes["Mystic"].count + drankjes["Cava of Wijn"].count;
-      if (drankjes["Cup Refund"].count + aantal > maxBekers) {
-        alert("Extra bekers via refund-ticket.");
-        return;
-      }
-    }
-
-    drankjes[naam].count += aantal;
-    updateTotaal();
-    updateOverzicht();
-  }
-
-  function verwijder(naam) {
-  if (drankjes[naam].count > 0) {
-    drankjes[naam].count--;
-
-    // Als het een alcoholisch drankje is, check refunds
-    if (["Primus", "Mystic", "Cava of Wijn"].includes(naam)) {
-      const maxRefunds = drankjes["Primus"].count + drankjes["Mystic"].count + drankjes["Cava of Wijn"].count;
-      if (drankjes["Cup Refund"].count > maxRefunds) {
-        drankjes["Cup Refund"].count = maxRefunds;
-      }
-    }
-
-    updateTotaal();
-    updateOverzicht();
-    }
-  }
-
-  function verwijderAlles(naam) {
-  const removedCount = drankjes[naam].count;
-  drankjes[naam].count = 0;
-
-  // Als het een alcoholisch drankje is, pas refunds aan
-  if (["Primus", "Mystic", "Cava of Wijn"].includes(naam) && removedCount > 0) {
-    const maxRefunds = drankjes["Primus"].count + drankjes["Mystic"].count + drankjes["Cava of Wijn"].count;
-    if (drankjes["Cup Refund"].count > maxRefunds) {
-      drankjes["Cup Refund"].count = maxRefunds;
-    }
-  }
-
-  // Als je Cup Refund zelf verwijdert, gewoon count op 0
-  updateTotaal();
-  updateOverzicht();
-  }
-    
-  function resetAlles() {
-    for (let naam in drankjes) {
-      drankjes[naam].count = 0;
-    }
-    updateTotaal();
-    updateOverzicht();
-  }
-
-  // ✅ Verzenden met FormData
-  function verzendBestelling() {
-  let totaal = 0;
-  let items = [];
-
-  for (let naam in drankjes) {
-    if (drankjes[naam].count > 0) {
-      let prijs = drankjes[naam].prijs;
-      let aantal = drankjes[naam].count;
-      let subtotaal = prijs * aantal;
-      totaal += subtotaal;
-
-      items.push({ naam, aantal, prijs, subtotaal });
-    }
-  }
-
-  if (items.length === 0) {
-    alert("Geen bestelling geselecteerd!");
-    return;
-  }
-
-  let form = new FormData();
-  form.append("items", JSON.stringify(items));
-  form.append("totaal", totaal);
-  form.append("barman", currentBarman);
-
-  // 🔹 Reset direct zodat gebruiker meteen verder kan
-  resetAlles();
-
-  // 🔹 Daarna pas verzenden
-  fetch("https://script.google.com/macros/s/AKfycbzysMFfKKvDEq6sdjHC0oZcAGDwla0UCZWuVwLLm-hFU9JFkBzctkIEy7NmMwuD5iFcPw/exec", {
-    method: "POST",
-    body: form
-  })
-  .then(res => res.text())
-  .then(text => {
-    console.log("Response:", text);
-
-    // ✅ Vinkje tonen
-    const popup = document.getElementById("check-popup");
-    popup.classList.add("show");
-
-    // Na 2s weer verbergen
-    setTimeout(() => {
-    popup.classList.remove("show");
-    }, 1000);
-  })
-  .catch(err => {
-    console.error("Error:", err);
-    alert("Er ging iets mis bij het verzenden.");
-  });
-}
-
-  // ✅ Drankknoppen toevoegen
-  const container = document.getElementById("drank-container");
-  for (let naam in drankjes) {
-    const drankje = drankjes[naam];
-    const div = document.createElement("div");
-    div.className = "drank";
-    div.innerHTML = `
-      <img src="${drankje.img}" alt="${naam}">
-      <p>${naam} (€${drankje.prijs.toFixed(2).replace('.', ',')})</p>
-    `;
-    div.addEventListener('click', () => voegToe(naam));
-    container.appendChild(div);
-  }
-
   updateOverzicht();
 </script>
 </body>
