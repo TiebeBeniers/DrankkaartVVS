@@ -522,7 +522,8 @@
       background: #0056b3;
     }
 
-    #cash-betaald {
+    #cash-betaald,
+    #qr-betaald {
       margin-top: 15px;
       padding: 10px 20px;
       font-size: 18px;
@@ -532,7 +533,8 @@
       border-radius: 8px;
       cursor: pointer;
     }
-    #cash-betaald:hover {
+    #cash-betaald:hover,
+    #qr-betaald:hover {
       background: darkgreen;
     }
     #cash-overzicht {
@@ -612,6 +614,7 @@
         <p id="qr-bedrag" style="font-size:24px; font-weight:bold; margin-bottom:5px;">€0,00</p>
         <canvas id="qrcode"></canvas>
       </div>
+      <button id="qr-betaald" onclick="afrondenQR()">✅ Betaald</button>
     </div>
   </div>
 
@@ -649,6 +652,7 @@
   <script>
       let currentBarman = null;
       let currentRole = null;
+      let paymentMethod = "onbekend";
 
       function login() {
         const usernameInput = document.getElementById("username").value.trim();
@@ -926,6 +930,12 @@
       document.getElementById("close-qr").onclick = function() {
         document.getElementById("qr-overlay").style.display = "none";
       };
+
+      function afrondenQR() {
+        document.getElementById("qr-overlay").style.display = "none";
+        paymentMethod = "QR-code";
+        verzendBestelling();
+      }
     
 
       function toonCash() {
@@ -975,6 +985,7 @@
           return;
         }
         document.getElementById("cash-overlay").style.display = "none";
+        paymentMethod = "Cash";
         verzendBestelling(); // hier stuur je naar de spreadsheet
       }
 
@@ -1004,11 +1015,12 @@
           alert("Geen bestelling geselecteerd!");
           return;
         }
-
+        
         let form = new FormData();
           form.append("items", JSON.stringify(items));
           form.append("totaal", totaal);
           form.append("barman", currentBarman);
+          form.append("paymentmethod", paymentMethod);
 
         // 🔹 Reset direct zodat gebruiker meteen verder kan
         resetAlles();
@@ -1050,8 +1062,8 @@
       div.addEventListener('click', () => voegToe(naam));
       container.appendChild(div);
     }
+
   updateOverzicht();
 </script>
 </body>
 </html>
-
