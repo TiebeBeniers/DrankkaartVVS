@@ -943,15 +943,16 @@
           alert("Nog niets geselecteerd om te betalen!");
           return;
         }
-    
+
         // Update bedrag in overlay
         const bedragElement = document.getElementById("qr-bedrag");
         bedragElement.innerText = "€" + totaal.toFixed(2).replace('.', ',');
 
         const bedragInCenten = Math.round(totaal * 100);
 
-        // ⚠️ Vervang '123456789' door je echte merchant ID
-        const link = `https://payconiq.com/pay?to=123456789&amount=${bedragInCenten}&description=Bestelling`;
+        // ✅ Gebruik merchant deep link in plaats van 'pay?to=...'
+        const merchantId = "6311028018dada62cdf95ea2"; // vervang dit door jouw echte merchant ID
+        const link = `https://payconiq.com/merchant/1/${merchantId}?amount=${bedragInCenten}&description=Bestelling`;
 
         // QR overlay zichtbaar maken
         const overlay = document.getElementById("qr-overlay");
